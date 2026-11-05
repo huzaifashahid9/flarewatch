@@ -6,6 +6,7 @@ import type { MapLayerMouseEvent } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Meta, SiteProps } from "@/lib-types";
 import GoogleFlareMap from "./GoogleFlareMap";
+import { DreToggle, Headline, SiteImpact, type Dre } from "./Impact";
 
 // Set in Vercel (Project → Settings → Environment Variables). Without it the
 // map falls back to the free CARTO basemap.
@@ -28,6 +29,7 @@ export default function FlareMap() {
   const [meta, setMeta] = useState<Meta | null>(null);
   const [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState<SiteProps | null>(null);
+  const [dre, setDre] = useState<Dre>("official");
 
   useEffect(() => {
     Promise.all([
@@ -79,7 +81,7 @@ export default function FlareMap() {
           data={data}
           selected={selected}
           onSelect={setSelected}
-          renderSite={(s) => <SitePanel site={s} />}
+          renderSite={(s) => <SitePanel site={s} dre={dre} />}
         />
       ) : (
       <Map
@@ -138,7 +140,7 @@ export default function FlareMap() {
             closeOnClick={false}
             maxWidth="320px"
           >
-            <SitePanel site={selected} />
+            <SitePanel site={selected} dre={dre} />
           </Popup>
         )}
       </Map>
@@ -154,6 +156,8 @@ export default function FlareMap() {
         )}
         {data && meta && (
           <>
+            {meta.totals && <Headline t={meta.totals} meta={meta} dre={dre} />}
+            {meta.totals && <DreToggle dre={dre} onChange={setDre} meta={meta} />}
             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
               <Stat label="Persistent" value={counts.persistent} />
               <Stat label="Intermittent" value={counts.intermittent} />
@@ -212,7 +216,7 @@ function DataHealth({ meta }: { meta: Meta }) {
   );
 }
 
-function SitePanel({ site }: { site: SiteProps }) {
+function SitePanel({ site, dre }: { site: SiteProps; dre: Dre }) {
   const v = site.volume;
   return (
     <div className="text-sm text-neutral-900">
@@ -241,6 +245,7 @@ function SitePanel({ site }: { site: SiteProps }) {
             </span>
           </div>
           <div className="text-xs text-neutral-600">{METHOD_LABEL[v.method]}</div>
+          {site.impact && <SiteImpact i={site.impact} dre={dre} />}
           {v.extrapolated && (
             <div className="text-xs text-amber-700">Above the tested calibration range</div>
           )}
