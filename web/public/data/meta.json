@@ -1,0 +1,14 @@
+{
+  "generated_at": "2026-11-05T06:41:59.812866+00:00",
+  "sources": [
+    "nasa-firms",
+    "world-bank-per-flare"
+  ],
+  "firms_satellites": [
+    "VIIRS_NOAA20_NRT",
+    "VIIRS_NOAA21_NRT"
+  ],
+  "calibration": "john-zink-2026",
+  "site_count": 60,
+  "notes": []
+}
