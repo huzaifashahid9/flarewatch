@@ -49,8 +49,10 @@ def test_cluster_groups_repeat_hotspot_and_drops_single():
 
 def test_activity_classes():
     site = cluster(detections())[0]
-    assert activity_class(site, ["2026-11"])[0] == "persistent"
+    assert activity_class(site, ["2026-11"])[0] == "monitoring"
     assert activity_class(site, ["2026-08", "2026-09", "2026-10", "2026-11"])[0] == "intermittent"
+    months = [f"2026-{m:02d}" for m in range(1, 12)]
+    assert activity_class(site, months)[0] == "sporadic"
     assert activity_class(site, [])[0] == "unknown"
 
 
@@ -135,3 +137,21 @@ def test_public_output_never_uses_nightfire():
     assert public[0]["volume"] is None
     private = run.build_sites(d, [], public=False)
     assert private[0]["volume"]["method"] == "nightfire"
+
+
+def test_pakistan_boundary_excludes_neighbours():
+    from flarewatch import geo
+    #           Sui gas field, Karachi, Delhi (India), Zahedan (Iran), Kandahar (Afg)
+    lats = [28.64, 24.86, 28.61, 29.50, 31.61]
+    lons = [69.18, 67.01, 77.21, 60.86, 65.71]
+    assert geo.in_pakistan(lats, lons).tolist() == [True, True, False, False, False]
+
+
+def test_sporadic_unknown_fires_are_dropped():
+    months = [f"2026-{m:02d}" for m in range(1, 12)]
+    from flarewatch.sources.base import Detection
+    from datetime import datetime, timezone
+    # One extra detection elsewhere per month so 11 months count as observed.
+    filler = [Detection(30.0 + m / 10, 70.0, datetime(2026, m, 1, 21, tzinfo=timezone.utc),
+                        "N20", "firms") for m in range(1, 12)]
+    assert run.build_sites(detections() + filler, []) == []

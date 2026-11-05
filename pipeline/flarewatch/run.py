@@ -9,13 +9,13 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 
-from . import archive
+from . import archive, geo
 from . import cluster as clustering
 from . import config, estimate
 from .sources import firms, nightfire, worldbank
@@ -61,10 +61,14 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
         if clustering.near_any(s.lat, s.lon, kilns, config.KILN_EXCLUSION_RADIUS_M):
             continue
         cls, share = clustering.activity_class(s, observed_months)
+        match = match_baseline(s, base)
+        if cls == "sporadic" and match is None:
+            # Seen in under a fifth of months and not a known flare: most
+            # likely crop burning or another short-lived fire.
+            continue
         frps = [d.frp_mw for d in s.detections if d.frp_mw is not None]
         mean_frp = float(np.mean(frps)) if frps else None
         rh = [d.rh75_mw for d in s.detections if d.rh75_mw is not None]
-        match = match_baseline(s, base)
         vol: Optional[estimate.VolumeEstimate] = None
         if rh and not public:
             vol = estimate.volume_from_rh75(float(np.mean(rh)))
@@ -110,7 +114,9 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--out", type=Path, default=Path("../web/public/data"))
     p.add_argument("--worldbank", type=Path, default=Path("../data/raw/worldbank_flares.xlsx"))
     p.add_argument("--archive", type=Path, default=Path("../data/archive/detections.csv"))
-    p.add_argument("--window-days", type=int, default=180)
+    p.add_argument("--window-days", type=int, default=365)
+    p.add_argument("--backfill-days", type=int, default=0,
+                   help="Also fetch this many past days from the FIRMS archive")
     p.add_argument("--private-out", type=Path, default=Path("../data/private"))
     args = p.parse_args(argv)
 
@@ -120,9 +126,16 @@ def main(argv: Optional[List[str]] = None) -> int:
     if nightfire.enabled():
         new += nightfire.fetch()
         used.append("viirs-nightfire")
-    new += firms.fetch(os.environ.get("FIRMS_MAP_KEY"), days=args.days)
+    key = os.environ.get("FIRMS_MAP_KEY")
+    new += firms.fetch(key, days=args.days)
+    if args.backfill_days > 0:
+        today = datetime.now(timezone.utc).date()
+        new += firms.fetch_range(key, today - timedelta(days=args.backfill_days),
+                                 today - timedelta(days=1))
     used.append("nasa-firms")
-    detections = archive.merge(archive.load(args.archive), new, args.window_days)
+    new = geo.filter_detections(new)
+    detections = archive.merge(geo.filter_detections(archive.load(args.archive)),
+                               new, args.window_days)
     archive.save(args.archive, detections)
     try:
         baseline = worldbank.load(args.worldbank)

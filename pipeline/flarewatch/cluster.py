@@ -68,6 +68,9 @@ def activity_class(site: Site, observed_months: Sequence[str]) -> Tuple[str, flo
     if not observed_months:
         return "unknown", 0.0
     share = len(set(site.active_months) & set(observed_months)) / len(set(observed_months))
+    if len(set(observed_months)) < config.MIN_OBSERVED_MONTHS:
+        # A few days of data cannot separate a flare from a crop fire.
+        return "monitoring", share
     if share >= config.PERSISTENT_MIN_SHARE:
         return "persistent", share
     if share >= config.INTERMITTENT_MIN_SHARE:

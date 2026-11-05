@@ -13,6 +13,11 @@ PAKISTAN_BBOX = (60.8, 23.6, 77.9, 37.1)
 # NOAA-20 and NOAA-21 are used for new data.
 # https://www.earthdata.nasa.gov/news/blog/transitioning-from-suomi-npp-viirs-omps-what-firms-users-need-know
 FIRMS_SOURCES = ("VIIRS_NOAA20_NRT", "VIIRS_NOAA21_NRT")
+# Science-quality archive used to backfill history (NRT data is replaced by SP
+# after a few months).
+FIRMS_ARCHIVE_SOURCES = ("VIIRS_NOAA20_SP", "VIIRS_NOAA21_SP")
+# Activity classes need enough history to mean anything.
+MIN_OBSERVED_MONTHS = 3
 FIRMS_API_BASE = "https://firms.modaps.eosdis.nasa.gov/api/area/csv"
 
 # Clustering: detections within this distance of each other form one site.

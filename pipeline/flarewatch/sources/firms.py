@@ -10,7 +10,7 @@ from __future__ import annotations
 import csv
 import io
 import time
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from typing import Iterable, List, Optional
 
 import requests
@@ -53,6 +53,25 @@ def parse_csv(text: str, source: str, night_only: bool = True) -> List[Detection
                 confidence=(row.get("confidence") or "").strip() or None,
             )
         )
+    return out
+
+
+def fetch_range(map_key: Optional[str], start: date, end: date,
+                sources: Iterable[str] = config.FIRMS_ARCHIVE_SOURCES + config.FIRMS_SOURCES,
+                session: Optional[requests.Session] = None) -> List[Detection]:
+    """Backfill [start, end] in 5-day chunks. SP covers older dates and NRT the
+    recent gap; duplicates are removed later by archive.merge. A chunk that a
+    source does not cover just returns no rows."""
+    if not map_key:
+        raise SourceNotConfigured("Set FIRMS_MAP_KEY to fetch NASA FIRMS data")
+    http = session or requests.Session()
+    out: List[Detection] = []
+    day = start
+    while day <= end:
+        span = min(5, (end - day).days + 1)
+        for source in sources:
+            out.extend(fetch(map_key, days=span, on=day, sources=[source], session=http))
+        day += timedelta(days=span)
     return out
 
 
