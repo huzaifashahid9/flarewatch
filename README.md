@@ -15,7 +15,8 @@ Independent satellite audit of gas flaring in Pakistan, built for the LUMS x OGD
 ## Setup
 
 - Add the repository secret `FIRMS_MAP_KEY` (Settings → Secrets and variables → Actions).
-- Run the "Nightly flare update" workflow once by hand (Actions tab → Run workflow, days = 5) to seed data.
+- Run the "Nightly flare update" workflow once by hand (Actions tab → Run workflow, days = 5, backfill_days = 365) to load a year of history. Activity classes need at least 3 months of data; until then sites show as "monitoring".
+- Detections are clipped to the Pakistan border (Natural Earth 1:10m, public domain), because the FIRMS bounding box also covers parts of India, Iran and Afghanistan.
 
 ## Local development
 

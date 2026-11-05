@@ -8,6 +8,9 @@ on:
       days:
         description: "Days of FIRMS data to fetch (1-5)"
         default: "1"
+      backfill_days:
+        description: "Also load this many past days from the FIRMS archive (0 = off, 365 = one year)"
+        default: "0"
 
 permissions:
   contents: write
@@ -19,10 +22,10 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           cache: pip
@@ -41,7 +44,10 @@ jobs:
         working-directory: pipeline
         env:
           FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
-        run: python -m flarewatch.run --days "${{ github.event.inputs.days || '1' }}"
+        run: >-
+          python -m flarewatch.run
+          --days "${{ github.event.inputs.days || '1' }}"
+          --backfill-days "${{ github.event.inputs.backfill_days || '0' }}"
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
