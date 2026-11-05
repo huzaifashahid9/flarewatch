@@ -85,8 +85,44 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
             "in_world_bank_catalogue": match is not None,
             "volume": vol.to_dict() if vol else None,
         }
+        if vol is not None:
+            site["impact"] = impact(vol.bcm_per_yr)
         out.append(site)
     return out
+
+
+def _r(r: estimate.Range, nd: int = 0) -> dict:
+    return {"low": round(r.low, nd), "mid": round(r.mid, nd), "high": round(r.high, nd)}
+
+
+def impact(bcm: estimate.Range) -> dict:
+    """What the flared gas means in CO2, power and money, each with its range."""
+    return {
+        "co2e_t_per_yr": _r(estimate.co2e_t_per_yr(bcm)),
+        "co2e_t_per_yr_at_observed_dre": _r(estimate.co2e_t_per_yr(bcm, config.DRE_OBSERVED)),
+        "power_mw": _r(estimate.power_mw(bcm), 1),
+        "value_usd_per_yr": _r(estimate.value_usd_per_yr(bcm, config.LNG_PRICE_USD_PER_MMBTU)),
+    }
+
+
+def totals(sites: Sequence[dict]) -> Optional[dict]:
+    """National totals over sites with a volume. Lows and highs are summed,
+    which is the widest honest band (errors are not assumed to cancel)."""
+    with_vol = [s for s in sites if s.get("volume")]
+    if not with_vol:
+        return None
+    def add(get):
+        rs = [get(s) for s in with_vol]
+        return estimate.Range(sum(r["low"] for r in rs), sum(r["mid"] for r in rs),
+                              sum(r["high"] for r in rs))
+    bcm = add(lambda s: s["volume"]["bcm_per_yr"])
+    return {
+        "sites_with_volume": len(with_vol),
+        "bcm_per_yr": _r(bcm, 4),
+        "mmscfd": _r(estimate.mmscfd(bcm), 1),
+        **impact(bcm),
+        "methods": sorted({s["volume"]["method"] for s in with_vol}),
+    }
 
 
 def write_outputs(sites: List[dict], out_dir: Path, sources_used: List[str],
@@ -104,6 +140,14 @@ def write_outputs(sites: List[dict], out_dir: Path, sources_used: List[str],
         "sources": sources_used, "firms_satellites": list(config.FIRMS_SOURCES),
         "calibration": config.ACTIVE_CALIBRATION.name,
         "site_count": len(sites), "notes": notes,
+        "totals": totals(sites),
+        "assumptions": {
+            "lng_price_usd_per_mmbtu": config.LNG_PRICE_USD_PER_MMBTU,
+            "lng_price_source": config.LNG_PRICE_SOURCE,
+            "dre_regulatory": config.DRE_REGULATORY,
+            "dre_observed": config.DRE_OBSERVED,
+            "btu_per_scf": 1000,
+        },
     }
     (out_dir / "meta.json").write_text(json.dumps(meta, indent=2))
 

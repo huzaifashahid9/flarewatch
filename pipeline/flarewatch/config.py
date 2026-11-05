@@ -80,3 +80,9 @@ KWH_PER_BCM = 4.0e9
 HOURS_PER_YEAR = 8760.0
 M3_PER_BCM = 1.0e9
 DAYS_PER_YEAR = 365.0
+
+# Gas price used for "value burned". Pakistan spot LNG import cost, April 2026.
+# Flared associated gas would replace imported LNG, so this is the
+# opportunity cost, not what a buyer would pay at the wellhead.
+LNG_PRICE_USD_PER_MMBTU = 18.4
+LNG_PRICE_SOURCE = "Pakistan spot LNG cargo price, April 2026"

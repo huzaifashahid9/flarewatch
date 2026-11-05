@@ -155,3 +155,16 @@ def test_sporadic_unknown_fires_are_dropped():
     filler = [Detection(30.0 + m / 10, 70.0, datetime(2026, m, 1, 21, tzinfo=timezone.utc),
                         "N20", "firms") for m in range(1, 12)]
     assert run.build_sites(detections() + filler, []) == []
+
+
+def test_impact_and_totals():
+    imp = run.impact(estimate.Range(0.9, 1.0, 1.1))
+    assert imp["co2e_t_per_yr"]["mid"] == pytest.approx(2.57e6, rel=1e-3)
+    assert imp["co2e_t_per_yr_at_observed_dre"]["mid"] > imp["co2e_t_per_yr"]["mid"]
+    # 1 BCM = 35.3 million MMBtu at 1000 Btu/scf
+    assert imp["value_usd_per_yr"]["mid"] == pytest.approx(35.3147e6 * 18.4, rel=1e-3)
+    sites = [{"volume": {"bcm_per_yr": {"low": 1, "mid": 2, "high": 3}, "method": "baseline"}},
+             {"volume": None}]
+    t = run.totals(sites)
+    assert t["sites_with_volume"] == 1 and t["bcm_per_yr"]["mid"] == 2
+    assert run.totals([{"volume": None}]) is None
