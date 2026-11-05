@@ -37,8 +37,9 @@ export default function FlareMap() {
   }, []);
 
   const counts = useMemo(() => {
-    const c = { persistent: 0, intermittent: 0, monitoring: 0 };
+    const c = { persistent: 0, intermittent: 0, monitoring: 0, known: 0 };
     data?.features.forEach((f) => {
+      if (f.properties.in_world_bank_catalogue) c.known += 1;
       const k = f.properties.activity_class as keyof typeof c;
       if (k in c) c[k] += 1;
     });
@@ -106,8 +107,11 @@ export default function FlareMap() {
                   "monitoring", "#a3a3a3",
                   "#c2410c",
                 ],
-                "circle-stroke-color": "#1a1a1a",
-                "circle-stroke-width": 1,
+                // Known World Bank flares are solid; unconfirmed heat
+                // sources are drawn faint so they never read as flares.
+                "circle-opacity": ["case", ["get", "in_world_bank_catalogue"], 1, 0.35],
+                "circle-stroke-color": ["case", ["get", "in_world_bank_catalogue"], "#1a1a1a", "#ffb020"],
+                "circle-stroke-width": ["case", ["get", "in_world_bank_catalogue"], 1, 1.5],
               }}
             />
           </Source>
@@ -140,6 +144,11 @@ export default function FlareMap() {
               <Stat label="Intermittent" value={counts.intermittent} />
               <Stat label="Monitoring" value={counts.monitoring} />
             </div>
+            <p className="mt-2 text-xs text-neutral-400">
+              {counts.known} of {data.features.length} sites match known flares in the
+              World Bank catalogue (solid dots). Faint dots are unconfirmed heat
+              sources, which may be cement, steel or brick plants.
+            </p>
             {counts.monitoring > 0 && (
               <p className="mt-2 text-xs text-neutral-400">
                 Grey sites have under 3 months of history, so they may still be
@@ -189,6 +198,13 @@ function SitePanel({ site }: { site: SiteProps }) {
   return (
     <div className="text-sm text-neutral-900">
       <div className="font-semibold capitalize">{site.activity_class} site</div>
+      {site.in_world_bank_catalogue ? (
+        <div className="text-xs text-emerald-700">Known flare (World Bank {site.baseline_year})</div>
+      ) : (
+        <div className="text-xs text-amber-700">
+          Unconfirmed: not a known flare. Could be a cement, steel or brick plant.
+        </div>
+      )}
       <div className="text-xs text-neutral-600">
         {site.lat.toFixed(4)}, {site.lon.toFixed(4)}
       </div>
