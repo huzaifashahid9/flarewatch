@@ -47,9 +47,22 @@ function SitesLayer({ data, onSelect }: { data: FC; onSelect: (s: SiteProps | nu
   return null;
 }
 
+/** Pan to a site opened from a shared link. */
+function Focus({ site }: { site: SiteProps | null }) {
+  const map = useMap();
+  useEffect(() => {
+    if (!map || !site) return;
+    // Wait a moment so the initial fit-to-Pakistan does not undo the zoom.
+    const t = setTimeout(() => map.moveCamera({ center: { lat: site.lat, lng: site.lon }, zoom: 11 }), 400);
+    return () => clearTimeout(t);
+  }, [map, site]);
+  return null;
+}
+
 export default function GoogleFlareMap({
-  apiKey, data, selected, onSelect, renderSite,
+  apiKey, data, selected, onSelect, renderSite, focus = null,
 }: {
+  focus?: SiteProps | null;
   apiKey: string;
   data: FC | null;
   selected: SiteProps | null;
@@ -72,6 +85,7 @@ export default function GoogleFlareMap({
         onClick={() => onSelect(null)}
       >
         {data && <SitesLayer data={data} onSelect={onSelect} />}
+        <Focus site={focus} />
         {selected && (
           <InfoWindow
             position={{ lat: selected.lat, lng: selected.lon }}

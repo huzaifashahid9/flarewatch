@@ -6,6 +6,7 @@ import type { MapLayerMouseEvent } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Meta, SiteProps } from "@/lib-types";
 import GoogleFlareMap from "./GoogleFlareMap";
+import SiteReport from "./SiteReport";
 import { DreToggle, Headline, SiteImpact, type Dre } from "./Impact";
 
 // Set in Vercel (Project → Settings → Environment Variables). Without it the
@@ -30,6 +31,7 @@ export default function FlareMap() {
   const [loadError, setLoadError] = useState(false);
   const [selected, setSelected] = useState<SiteProps | null>(null);
   const [dre, setDre] = useState<Dre>("official");
+  const [focus, setFocus] = useState<SiteProps | null>(null);
 
   useEffect(() => {
     Promise.all([
@@ -38,6 +40,13 @@ export default function FlareMap() {
     ])
       .then(([sites, m]) => {
         setData(sites);
+        // Shareable links: /?site=PK-25.3881-68.5821 opens that site's report.
+        const want = new URLSearchParams(window.location.search).get("site");
+        const hit = want && (sites as FC).features.find((f) => f.properties.id === want);
+        if (hit) {
+          setSelected(hit.properties);
+          setFocus(hit.properties);
+        }
         setMeta(m);
       })
       .catch(() => setLoadError(true));
@@ -81,6 +90,7 @@ export default function FlareMap() {
           data={data}
           selected={selected}
           onSelect={setSelected}
+          focus={focus}
           renderSite={(s) => <SitePanel site={s} dre={dre} />}
         />
       ) : (
@@ -182,6 +192,9 @@ export default function FlareMap() {
           </>
         )}
       </aside>
+      {selected && meta && (
+        <SiteReport site={selected} meta={meta} onClose={() => setSelected(null)} />
+      )}
     </div>
   );
 }

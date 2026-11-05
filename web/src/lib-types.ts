@@ -20,6 +20,7 @@ export type SiteProps = {
     note: string;
   } | null;
   impact?: Impact;
+  monthly_nights?: number[];
 };
 
 export type Impact = {
@@ -44,6 +45,7 @@ export type Meta = {
   site_count: number;
   notes: string[];
   totals?: Totals | null;
+  observed_months?: string[];
   assumptions?: {
     lng_price_usd_per_mmbtu: number;
     lng_price_source: string;
