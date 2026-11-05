@@ -84,11 +84,21 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
             "baseline_year": match.year if match else None,
             "in_world_bank_catalogue": match is not None,
             "volume": vol.to_dict() if vol else None,
+            # Nights detected in each observed month, aligned with
+            # meta.observed_months, for the activity chart.
+            "monthly_nights": monthly_nights(s, observed_months),
         }
         if vol is not None:
             site["impact"] = impact(vol.bcm_per_yr)
         out.append(site)
     return out
+
+
+def monthly_nights(site: clustering.Site, months: Sequence[str]) -> List[int]:
+    counts: Dict[str, int] = {}
+    for night in site.nights:
+        counts[night[:7]] = counts.get(night[:7], 0) + 1
+    return [counts.get(m, 0) for m in months]
 
 
 def _r(r: estimate.Range, nd: int = 0) -> dict:
@@ -126,7 +136,7 @@ def totals(sites: Sequence[dict]) -> Optional[dict]:
 
 
 def write_outputs(sites: List[dict], out_dir: Path, sources_used: List[str],
-                  notes: List[str]) -> None:
+                  notes: List[str], observed_months: Sequence[str] = ()) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     features = [{
         "type": "Feature",
@@ -141,6 +151,7 @@ def write_outputs(sites: List[dict], out_dir: Path, sources_used: List[str],
         "calibration": config.ACTIVE_CALIBRATION.name,
         "site_count": len(sites), "notes": notes,
         "totals": totals(sites),
+        "observed_months": list(observed_months),
         "assumptions": {
             "lng_price_usd_per_mmbtu": config.LNG_PRICE_USD_PER_MMBTU,
             "lng_price_source": config.LNG_PRICE_SOURCE,
@@ -189,11 +200,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         notes.append(str(exc))
     public_used = [u for u in used if u != "viirs-nightfire"]
     sites = build_sites(detections, baseline, public=True)
-    write_outputs(sites, args.out, public_used, notes)
+    months = sorted({d.observed_at.strftime("%Y-%m") for d in detections})
+    write_outputs(sites, args.out, public_used, notes, months)
     if nightfire.enabled():
         private = build_sites(detections, baseline, public=False)
         write_outputs(private, args.private_out, used,
-                      notes + ["Confidential - Not for Public Release (VIIRS Nightfire licence)"])
+                      notes + ["Confidential - Not for Public Release (VIIRS Nightfire licence)"],
+                      months)
     print(f"{len(new)} new detections, {len(detections)} in archive, "
           f"{len(sites)} sites -> {args.out}")
     return 0

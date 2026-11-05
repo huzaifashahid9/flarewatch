@@ -168,3 +168,8 @@ def test_impact_and_totals():
     t = run.totals(sites)
     assert t["sites_with_volume"] == 1 and t["bcm_per_yr"]["mid"] == 2
     assert run.totals([{"volume": None}]) is None
+
+
+def test_monthly_nights_align_with_months():
+    site = cluster(detections())[0]
+    assert run.monthly_nights(site, ["2026-10", "2026-11"]) == [0, 3]
