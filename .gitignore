@@ -1,0 +1,17 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+# Node
+node_modules/
+.next/
+out/
+# Data
+data/raw/
+data/cache/
+# Secrets
+.env
+.env.*
+!.env.example
+data/private/

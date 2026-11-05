@@ -1,0 +1,51 @@
+name: Nightly flare update
+
+on:
+  schedule:
+    - cron: "17 2 * * *"   # 07:17 PKT, after the NOAA-20/21 night passes
+  workflow_dispatch:
+    inputs:
+      days:
+        description: "Days of FIRMS data to fetch (1-5)"
+        default: "1"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: nightly
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: pipeline/requirements.txt
+      - run: pip install -r pipeline/requirements.txt
+      - name: Run tests
+        working-directory: pipeline
+        run: python -m pytest -q
+      - name: Download World Bank per-flare volumes
+        run: |
+          mkdir -p data/raw
+          curl -fsSL --retry 3 -o data/raw/worldbank_flares.xlsx \
+            "https://thedocs.worldbank.org/en/doc/b34e0c054bb3fe3695e70154c28eef3f-0400072026/related/Flare-Volume-Estimates-by-individual-Flare-Location-2012-2025.xlsx" \
+            || echo "World Bank download failed; continuing without baseline"
+      - name: Run pipeline
+        working-directory: pipeline
+        env:
+          FIRMS_MAP_KEY: ${{ secrets.FIRMS_MAP_KEY }}
+        run: python -m flarewatch.run --days "${{ github.event.inputs.days || '1' }}"
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add web/public/data data/archive
+          git diff --cached --quiet || git commit -m "Nightly flare data update"
+          git push
