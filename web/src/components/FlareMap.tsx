@@ -5,6 +5,11 @@ import Map, { Layer, Popup, Source, NavigationControl } from "react-map-gl/mapli
 import type { MapLayerMouseEvent } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { Meta, SiteProps } from "@/lib-types";
+import GoogleFlareMap from "./GoogleFlareMap";
+
+// Set in Vercel (Project → Settings → Environment Variables). Without it the
+// map falls back to the free CARTO basemap.
+const GOOGLE_KEY = process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY;
 
 const BASEMAP = "https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json";
 
@@ -68,6 +73,15 @@ export default function FlareMap() {
 
   return (
     <div className="relative h-full w-full">
+      {GOOGLE_KEY ? (
+        <GoogleFlareMap
+          apiKey={GOOGLE_KEY}
+          data={data}
+          selected={selected}
+          onSelect={setSelected}
+          renderSite={(s) => <SitePanel site={s} />}
+        />
+      ) : (
       <Map
         initialViewState={{ longitude: 69.3, latitude: 30.0, zoom: 4.6 }}
         mapStyle={BASEMAP}
@@ -128,6 +142,7 @@ export default function FlareMap() {
           </Popup>
         )}
       </Map>
+      )}
 
       <aside className="absolute left-4 top-4 w-80 max-w-[calc(100%-2rem)] rounded-xl bg-neutral-950/85 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
         <h1 className="text-lg font-semibold text-white">FlareWatch</h1>
@@ -142,7 +157,11 @@ export default function FlareMap() {
             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
               <Stat label="Persistent" value={counts.persistent} />
               <Stat label="Intermittent" value={counts.intermittent} />
-              <Stat label="Monitoring" value={counts.monitoring} />
+              {counts.monitoring > 0 ? (
+                <Stat label="Monitoring" value={counts.monitoring} />
+              ) : (
+                <Stat label="Known flares" value={counts.known} />
+              )}
             </div>
             <p className="mt-2 text-xs text-neutral-400">
               {counts.known} of {data.features.length} sites match known flares in the
