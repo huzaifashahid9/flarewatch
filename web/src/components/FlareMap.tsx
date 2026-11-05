@@ -37,7 +37,7 @@ export default function FlareMap() {
   }, []);
 
   const counts = useMemo(() => {
-    const c = { persistent: 0, intermittent: 0, sporadic: 0 };
+    const c = { persistent: 0, intermittent: 0, monitoring: 0 };
     data?.features.forEach((f) => {
       const k = f.properties.activity_class as keyof typeof c;
       if (k in c) c[k] += 1;
@@ -103,6 +103,7 @@ export default function FlareMap() {
                   ["get", "activity_class"],
                   "persistent", "#ffb020",
                   "intermittent", "#ff7a1a",
+                  "monitoring", "#a3a3a3",
                   "#c2410c",
                 ],
                 "circle-stroke-color": "#1a1a1a",
@@ -137,8 +138,14 @@ export default function FlareMap() {
             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
               <Stat label="Persistent" value={counts.persistent} />
               <Stat label="Intermittent" value={counts.intermittent} />
-              <Stat label="Sporadic" value={counts.sporadic} />
+              <Stat label="Monitoring" value={counts.monitoring} />
             </div>
+            {counts.monitoring > 0 && (
+              <p className="mt-2 text-xs text-neutral-400">
+                Grey sites have under 3 months of history, so they may still be
+                crop fires or industry. They are confirmed or dropped as data builds up.
+              </p>
+            )}
             <DataHealth meta={meta} />
           </>
         )}

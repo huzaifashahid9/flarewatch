@@ -4,7 +4,7 @@ export type SiteProps = {
   id: string;
   lat: number;
   lon: number;
-  activity_class: "persistent" | "intermittent" | "sporadic" | "unknown";
+  activity_class: "persistent" | "intermittent" | "sporadic" | "monitoring" | "unknown";
   active_share: number;
   nights_detected: number;
   last_seen: string;
