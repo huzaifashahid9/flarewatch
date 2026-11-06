@@ -86,3 +86,8 @@ DAYS_PER_YEAR = 365.0
 # opportunity cost, not what a buyer would pay at the wellhead.
 LNG_PRICE_USD_PER_MMBTU = 18.4
 LNG_PRICE_SOURCE = "Pakistan spot LNG cargo price, April 2026"
+
+# Gas flares burn at about 1,400-2,000 K in VIIRS Nightfire; biomass fires,
+# brick kilns and cement or steel plants are mostly cooler (Elvidge et al.
+# 2016). Used only in the private, Nightfire-based output.
+FLARE_MIN_TEMP_K = 1400

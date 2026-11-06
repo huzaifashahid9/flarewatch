@@ -97,6 +97,12 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
         }
         if vol is not None:
             site["impact"] = impact(vol.bcm_per_yr)
+        temps = [d.temperature_k for d in s.detections if d.temperature_k]
+        if temps and not public:
+            t = float(np.median(temps))
+            site["vnf_temp_k"] = round(t)
+            site["vnf_overpasses"] = len(rh75)
+            site["temp_fingerprint"] = "gas flare" if t >= config.FLARE_MIN_TEMP_K else "cooler source (industry or fire)"
         out.append(site)
     return out
 
