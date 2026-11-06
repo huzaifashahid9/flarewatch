@@ -216,6 +216,10 @@ const UR: Record<string, string> = {
   "Better": "بہتر",
   "Worse": "خراب",
   "Same": "یکساں",
+  "All companies": "تمام کمپنیاں",
+  "Search a field, company, province or id": "فیلڈ، کمپنی، صوبہ یا نمبر تلاش کریں",
+  "Field operator: {c} (public sources; nearest field, not the official licence map)": "فیلڈ آپریٹر: {c} (عوامی ذرائع؛ قریب ترین فیلڈ، سرکاری لائسنس نقشہ نہیں)",
+  "Field run by {c}": "فیلڈ {c} چلاتی ہے",
 };
 
 export const LangContext = createContext<Lang>("en");

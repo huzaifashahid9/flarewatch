@@ -137,6 +137,7 @@ export function SimpleSite({ site, onDetails }: { site: SiteProps; onDetails: ()
         {site.activity_class === "new" ? t("New gas flare") : site.in_world_bank_catalogue ? t("Gas flare") : t("Hot spot, not confirmed")}
       </div>
       {where && <div className="text-neutral-600">{t("Near {f}", { f: where })}</div>}
+      {site.nearest_field?.operator && <div className="text-neutral-600">{t("Field run by {c}", { c: site.nearest_field.operator })}</div>}
       <div className="mt-1">{t("Seen burning on {n} nights this year.", { n: site.nights_detected })}</div>
       <TrendLine site={site} className="text-xs" />
       {usd != null && usd > 0 ? (

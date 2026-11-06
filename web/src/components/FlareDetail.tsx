@@ -34,7 +34,7 @@ export default function FlareDetail({ id }: { id: string }) {
               {site.nearest_field?.name ?? t(site.in_world_bank_catalogue ? "Gas flare" : "Hot spot, not confirmed")}
             </h1>
             <p className="text-sm text-neutral-400">
-              {t(cls)} {t("site")}{site.province ? ` · ${t(site.province)}` : ""} · <span dir="ltr">{site.lat.toFixed(4)}, {site.lon.toFixed(4)}</span>
+              {site.nearest_field?.operator ? `${site.nearest_field.operator} · ` : ""}{t(cls)} {t("site")}{site.province ? ` · ${t(site.province)}` : ""} · <span dir="ltr">{site.lat.toFixed(4)}, {site.lon.toFixed(4)}</span>
             </p>
           </div>
         </div>
@@ -74,6 +74,7 @@ export default function FlareDetail({ id }: { id: string }) {
               {site.first_seen && <li>{t("First seen {d}", { d: site.first_seen })}</li>}
               <li>{site.in_world_bank_catalogue ? t("Known flare (World Bank {y})", { y: site.baseline_year ?? "" }) : t("Unconfirmed: not a known flare. Could be a cement, steel or brick plant.")}</li>
               {site.nearest_field && <li>{t("Nearest named field: {f} ({km} km, OpenStreetMap)", { f: site.nearest_field.name, km: site.nearest_field.km })}</li>}
+              {site.nearest_field?.operator && <li>{t("Field operator: {c} (public sources; nearest field, not the official licence map)", { c: site.nearest_field.operator })}</li>}
               <li>{t("Satellites")}: {site.satellites.join(", ")}</li>
             </ul>
           </Card>

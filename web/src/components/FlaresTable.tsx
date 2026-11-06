@@ -32,10 +32,12 @@ export default function FlaresTable() {
   const [q, setQ] = useState("");
   const [province, setProvince] = useState("");
   const [grade, setGrade] = useState("");
+  const [company, setCompany] = useState("");
   const [knownOnly, setKnownOnly] = useState(true);
   const [sort, setSort] = useState<{ k: SortKey; desc: boolean }>({ k: "value", desc: true });
 
   const provinces = useMemo(() => [...new Set((data?.sites ?? []).map((s) => s.province).filter(Boolean) as string[])].sort(), [data]);
+  const companies = useMemo(() => [...new Set((data?.sites ?? []).map((s) => s.nearest_field?.operator).filter(Boolean) as string[])].sort(), [data]);
   const rows = useMemo(() => {
     if (!data) return [];
     const needle = q.trim().toLowerCase();
@@ -43,7 +45,8 @@ export default function FlaresTable() {
       if (knownOnly && !s.in_world_bank_catalogue) return false;
       if (province && s.province !== province) return false;
       if (grade && gradeOf(s)?.letter !== grade) return false;
-      if (needle && !`${s.id} ${s.nearest_field?.name ?? ""} ${s.province ?? ""}`.toLowerCase().includes(needle)) return false;
+      if (company && s.nearest_field?.operator !== company) return false;
+      if (needle && !`${s.id} ${s.nearest_field?.name ?? ""} ${s.nearest_field?.operator ?? ""} ${s.province ?? ""}`.toLowerCase().includes(needle)) return false;
       return true;
     });
     out.sort((a, b) => {
@@ -52,14 +55,14 @@ export default function FlaresTable() {
       return sort.desc ? -c : c;
     });
     return out;
-  }, [data, q, province, grade, knownOnly, sort]);
+  }, [data, q, province, grade, company, knownOnly, sort]);
 
   const download = () => {
     const head = ["id", "lat", "lon", "grade", "nearest_field", "province", "activity_class", "nights_detected", "last_seen",
-      "mmscfd_mid", "usd_per_yr_mid", "world_bank_trend", "world_bank_change_pct"];
+      "nearest_field_operator", "mmscfd_mid", "usd_per_yr_mid", "world_bank_trend", "world_bank_change_pct"];
     const esc = (v: unknown) => `"${String(v ?? "").replaceAll('"', '""')}"`;
     const lines = rows.map((s) => [s.id, s.lat, s.lon, gradeOf(s)?.letter, s.nearest_field?.name, s.province, s.activity_class,
-      s.nights_detected, s.last_seen, s.volume?.mmscfd.mid, s.impact?.value_usd_per_yr.mid, s.trend?.direction, s.trend?.change_pct].map(esc).join(","));
+      s.nights_detected, s.last_seen, s.nearest_field?.operator, s.volume?.mmscfd.mid, s.impact?.value_usd_per_yr.mid, s.trend?.direction, s.trend?.change_pct].map(esc).join(","));
     const blob = new Blob([[head.join(","), ...lines].join("\n") + "\n"], { type: "text/csv" });
     const a = document.createElement("a");
     a.href = URL.createObjectURL(blob);
@@ -88,7 +91,7 @@ export default function FlaresTable() {
       </header>
 
       <div className="flex flex-wrap items-center gap-2 text-sm">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Search a field, province or id")}
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("Search a field, company, province or id")}
           className="w-64 max-w-full rounded-lg bg-neutral-900 px-3 py-2 text-white ring-1 ring-neutral-800" />
         <select value={province} onChange={(e) => setProvince(e.target.value)} className="rounded-lg bg-neutral-900 px-3 py-2 ring-1 ring-neutral-800">
           <option value="">{t("All provinces")}</option>
@@ -98,6 +101,12 @@ export default function FlaresTable() {
           <option value="">{t("All grades")}</option>
           {["A", "B", "C", "D", "F"].map((g) => <option key={g} value={g}>{g}</option>)}
         </select>
+        {companies.length > 0 && (
+          <select value={company} onChange={(e) => setCompany(e.target.value)} className="rounded-lg bg-neutral-900 px-3 py-2 ring-1 ring-neutral-800">
+            <option value="">{t("All companies")}</option>
+            {companies.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+        )}
         <label className="flex items-center gap-1.5 text-neutral-300">
           <input type="checkbox" checked={knownOnly} onChange={(e) => setKnownOnly(e.target.checked)} className="accent-orange-500" />
           {t("Known flares only")}
@@ -127,7 +136,9 @@ export default function FlaresTable() {
                   <td className="px-3 py-2">{g ? <GradeBadge g={g} /> : <span className="text-neutral-600">–</span>}</td>
                   <td className="px-3 py-2">
                     <div className="text-white">{s.nearest_field?.name ?? t(s.in_world_bank_catalogue ? "Gas flare" : "Hot spot, not confirmed")}</div>
-                    <div className="text-[11px] text-neutral-500" dir="ltr">{s.id}</div>
+                    <div className="text-[11px] text-neutral-500">
+                      {s.nearest_field?.operator && <span className="me-1.5 text-neutral-300">{s.nearest_field.operator} ·</span>}<span dir="ltr">{s.id}</span>
+                    </div>
                   </td>
                   <td className="px-3 py-2 text-neutral-300">{s.province ? t(s.province) : "–"}</td>
                   <td className="px-3 py-2 text-end tabular-nums">{s.nights_detected}</td>
