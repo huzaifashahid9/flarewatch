@@ -12,6 +12,7 @@ import GoogleFlareMap from "./GoogleFlareMap";
 import SiteReport from "./SiteReport";
 import ReconcilePanel from "./ReconcilePanel";
 import AnalystPanel from "./AnalystPanel";
+import { SimplePanel, SimpleSite } from "./SimpleView";
 import { DreToggle, Headline, SiteImpact, type Dre } from "./Impact";
 
 // Set in Vercel (Project → Settings → Environment Variables). Without it the
@@ -40,6 +41,9 @@ export default function FlareMap() {
   const [reconcile, setReconcile] = useState(false);
   const [analyst, setAnalyst] = useState(false);
   const [lang, setLang] = useState<Lang>("en");
+  // Simple view for everyone by default; ?view=expert opens the full panel.
+  const [mode, setMode] = useState<"simple" | "expert">(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("view") === "expert" ? "expert" : "simple");
   const [timeline, setTimeline] = useState<Timeline | null>(null);
   const [tlOn, setTlOn] = useState(false);
   const [day, setDay] = useState(0);
@@ -118,7 +122,7 @@ export default function FlareMap() {
           onSelect={setSelected}
           focus={focus}
           timelapse={tlOn && tl ? { byDay: tl.byDay, day } : null}
-          renderSite={(s) => <SitePanel site={s} dre={dre} />}
+          renderSite={(s) => mode === "simple" ? <SimpleSite site={s} onDetails={() => setMode("expert")} /> : <SitePanel site={s} dre={dre} />}
         />
       ) : (
       <Map
@@ -178,7 +182,7 @@ export default function FlareMap() {
             closeOnClick={false}
             maxWidth="320px"
           >
-            <SitePanel site={selected} dre={dre} />
+            {mode === "simple" ? <SimpleSite site={selected} onDetails={() => setMode("expert")} /> : <SitePanel site={selected} dre={dre} />}
           </Popup>
         )}
       </Map>
@@ -187,10 +191,16 @@ export default function FlareMap() {
       <aside dir={lang === "ur" ? "rtl" : "ltr"} className="absolute left-4 top-4 w-80 max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-neutral-950/85 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
         <div className="flex items-center justify-between">
           <h1 className="text-lg font-semibold text-white">FlareWatch</h1>
-          <button onClick={() => setLang(lang === "en" ? "ur" : "en")}
-            className="rounded bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 hover:bg-neutral-700">
-            {lang === "en" ? "اردو" : "English"}
-          </button>
+          <div className="flex gap-1">
+            <button onClick={() => setMode(mode === "simple" ? "expert" : "simple")}
+              className="rounded bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 hover:bg-neutral-700">
+              <LeftText k={mode === "simple" ? "Expert view" : "Simple view"} />
+            </button>
+            <button onClick={() => setLang(lang === "en" ? "ur" : "en")}
+              className="rounded bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 hover:bg-neutral-700">
+              {lang === "en" ? "اردو" : "English"}
+            </button>
+          </div>
         </div>
         <LeftText k="Gas flares across Pakistan, seen from space every night." className="text-neutral-400" />
         {loadError && (
@@ -198,7 +208,14 @@ export default function FlareMap() {
             No data yet. The nightly job has not produced a run for this deployment.
           </p>
         )}
-        {data && meta && (
+        {data && meta && mode === "simple" && (
+          <div className="mt-3">
+            <SimplePanel meta={meta} counts={counts} playing={tlOn} onExpert={() => setMode("expert")}
+              onAsk={() => { setSelected(null); setReconcile(false); setAnalyst(true); }}
+              onPlay={GOOGLE_KEY ? () => (tlOn ? (setTlOn(false), setPlaying(false)) : startTimelapse()) : undefined} />
+          </div>
+        )}
+        {data && meta && mode === "expert" && (
           <>
             {meta.totals && <Headline t={meta.totals} meta={meta} dre={dre} />}
             {meta.totals && <DreToggle dre={dre} onChange={setDre} meta={meta} />}
@@ -260,7 +277,7 @@ export default function FlareMap() {
         <ReconcilePanel sites={data.features.map((f) => f.properties)} onClose={() => setReconcile(false)}
           onPick={(s) => { setSelected(s); setFocus(s); }} />
       )}
-      {selected && meta && (
+      {selected && meta && mode === "expert" && (
         <SiteReport site={selected} meta={meta} onClose={() => setSelected(null)} />
       )}
     </div>
