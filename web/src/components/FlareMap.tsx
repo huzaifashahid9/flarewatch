@@ -8,6 +8,7 @@ import type { Meta, SiteProps } from "@/lib-types";
 import GoogleFlareMap from "./GoogleFlareMap";
 import SiteReport from "./SiteReport";
 import ReconcilePanel from "./ReconcilePanel";
+import AnalystPanel from "./AnalystPanel";
 import { DreToggle, Headline, SiteImpact, type Dre } from "./Impact";
 
 // Set in Vercel (Project → Settings → Environment Variables). Without it the
@@ -34,6 +35,7 @@ export default function FlareMap() {
   const [dre, setDre] = useState<Dre>("official");
   const [focus, setFocus] = useState<SiteProps | null>(null);
   const [reconcile, setReconcile] = useState(false);
+  const [analyst, setAnalyst] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -190,14 +192,19 @@ export default function FlareMap() {
                 crop fires or industry. They are confirmed or dropped as data builds up.
               </p>
             )}
-            <button onClick={() => { setSelected(null); setReconcile(true); }}
-              className="mt-3 w-full rounded-md bg-neutral-800 py-2 text-sm font-medium text-white hover:bg-neutral-700">
+            <button onClick={() => { setSelected(null); setReconcile(false); setAnalyst(true); }}
+              className="mt-3 w-full rounded-md bg-orange-500 py-2 text-sm font-semibold text-black hover:bg-orange-400">
+              Ask the AI analyst
+            </button>
+            <button onClick={() => { setSelected(null); setAnalyst(false); setReconcile(true); }}
+              className="mt-2 w-full rounded-md bg-neutral-800 py-2 text-sm font-medium text-white hover:bg-neutral-700">
               Check a flare report against satellites
             </button>
             <DataHealth meta={meta} />
           </>
         )}
       </aside>
+      {analyst && !selected && !reconcile && <AnalystPanel onClose={() => setAnalyst(false)} />}
       {reconcile && !selected && data && (
         <ReconcilePanel sites={data.features.map((f) => f.properties)} onClose={() => setReconcile(false)}
           onPick={(s) => { setSelected(s); setFocus(s); }} />
