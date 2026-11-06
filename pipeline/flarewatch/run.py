@@ -94,6 +94,11 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
     return out
 
 
+def public_only(detections: Sequence[Detection]) -> List[Detection]:
+    """Drop anything derived from VIIRS Nightfire before it can reach a public file."""
+    return [d for d in detections if d.source != "nightfire" and d.rh75_mw is None]
+
+
 def monthly_nights(site: clustering.Site, months: Sequence[str]) -> List[int]:
     counts: Dict[str, int] = {}
     for night in site.nights:
@@ -176,20 +181,17 @@ def main(argv: Optional[List[str]] = None) -> int:
     args = p.parse_args(argv)
 
     notes: List[str] = []
-    used: List[str] = []
-    new: List[Detection] = []
-    if nightfire.enabled():
-        new += nightfire.fetch()
-        used.append("viirs-nightfire")
+    used: List[str] = ["nasa-firms"]
     key = os.environ.get("FIRMS_MAP_KEY")
-    new += firms.fetch(key, days=args.days)
+    new = firms.fetch(key, days=args.days)
     if args.backfill_days > 0:
         today = datetime.now(timezone.utc).date()
         new += firms.fetch_range(key, today - timedelta(days=args.backfill_days),
                                  today - timedelta(days=1))
-    used.append("nasa-firms")
-    new = geo.filter_detections(new)
-    detections = archive.merge(geo.filter_detections(archive.load(args.archive)),
+    new = public_only(geo.filter_detections(new))
+    # The public archive is committed to a public repo, so it holds FIRMS
+    # detections only. Nightfire rows never go into it (VNF licence 1b).
+    detections = archive.merge(public_only(geo.filter_detections(archive.load(args.archive))),
                                new, args.window_days)
     archive.save(args.archive, detections)
     try:
@@ -198,15 +200,18 @@ def main(argv: Optional[List[str]] = None) -> int:
     except SourceNotConfigured as exc:
         baseline = []
         notes.append(str(exc))
-    public_used = [u for u in used if u != "viirs-nightfire"]
     sites = build_sites(detections, baseline, public=True)
     months = sorted({d.observed_at.strftime("%Y-%m") for d in detections})
-    write_outputs(sites, args.out, public_used, notes, months)
+    write_outputs(sites, args.out, used, notes, months)
     if nightfire.enabled():
-        private = build_sites(detections, baseline, public=False)
-        write_outputs(private, args.private_out, used,
-                      notes + ["Confidential - Not for Public Release (VIIRS Nightfire licence)"],
-                      months)
+        # Private path only: data/private is git-ignored and never deployed.
+        vnf_archive = args.private_out / "nightfire_archive.csv"
+        vnf = archive.merge(archive.load(vnf_archive),
+                            geo.filter_detections(nightfire.fetch()), args.window_days)
+        archive.save(vnf_archive, vnf)
+        private = build_sites(detections + vnf, baseline, public=False)
+        write_outputs(private, args.private_out, used + ["viirs-nightfire"],
+                      notes + [nightfire.CONFIDENTIAL_NOTE, nightfire.NOTICE], months)
     print(f"{len(new)} new detections, {len(detections)} in archive, "
           f"{len(sites)} sites -> {args.out}")
     return 0

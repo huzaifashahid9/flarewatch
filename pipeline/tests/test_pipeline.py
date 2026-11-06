@@ -173,3 +173,10 @@ def test_impact_and_totals():
 def test_monthly_nights_align_with_months():
     site = cluster(detections())[0]
     assert run.monthly_nights(site, ["2026-10", "2026-11"]) == [0, 3]
+
+
+def test_public_archive_never_keeps_nightfire_rows():
+    from dataclasses import replace
+    d = detections()
+    vnf = [replace(x, source="nightfire", rh75_mw=5.0) for x in d]
+    assert run.public_only(d + vnf) == d

@@ -14,6 +14,13 @@ from typing import List
 from .base import Detection, SourceNotConfigured
 
 
+# Required wording under the VNF academic licence (clause 2a, and 1e for
+# current-year figures). Any private output or slide using VNF carries both.
+NOTICE = ("This product was made utilizing VIIRS Nightfire (VNF) nightly data produced by "
+          "the Earth Observation Group, Payne Institute for Public Policy, Colorado School of Mines.")
+CONFIDENTIAL_NOTE = "Confidential - Not for Public Release (VIIRS Nightfire licence)"
+
+
 def enabled() -> bool:
     return os.environ.get("FLAREWATCH_USE_NIGHTFIRE") == "1"
 
