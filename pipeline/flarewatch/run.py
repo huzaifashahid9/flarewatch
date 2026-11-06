@@ -180,8 +180,32 @@ def totals(sites: Sequence[dict]) -> Optional[dict]:
     }
 
 
+def national_trend(baseline: Sequence[BaselineFlare]) -> List[dict]:
+    """Pakistan's yearly flared volume from the World Bank per-flare file."""
+    years: Dict[int, float] = {}
+    for f in baseline:
+        years[f.year] = years.get(f.year, 0.0) + f.bcm
+    return [{"year": y, "bcm": round(v, 4)} for y, v in sorted(years.items())]
+
+
+def write_timeline(detections: Sequence[Detection], out_dir: Path) -> None:
+    """Compact nightly FIRMS detections for the time-lapse: one row per
+    detection as [day index, lat, lon]. FIRMS data is open; never pass
+    Nightfire rows here."""
+    dets = public_only(detections)
+    if not dets:
+        return
+    start = min(d.observed_at.date() for d in dets)
+    rows = sorted({((d.observed_at.date() - start).days, round(d.lat, 3), round(d.lon, 3))
+                   for d in dets})
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "timeline.json").write_text(json.dumps(
+        {"start": start.isoformat(), "rows": [list(r) for r in rows]}, separators=(",", ":")))
+
+
 def write_outputs(sites: List[dict], out_dir: Path, sources_used: List[str],
-                  notes: List[str], observed_months: Sequence[str] = ()) -> None:
+                  notes: List[str], observed_months: Sequence[str] = (),
+                  trend: Sequence[dict] = ()) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     features = [{
         "type": "Feature",
@@ -197,6 +221,7 @@ def write_outputs(sites: List[dict], out_dir: Path, sources_used: List[str],
         "site_count": len(sites), "notes": notes,
         "totals": totals(sites),
         "observed_months": list(observed_months),
+        "national_trend": list(trend),
         "assumptions": {
             "lng_price_usd_per_mmbtu": config.LNG_PRICE_USD_PER_MMBTU,
             "lng_price_source": config.LNG_PRICE_SOURCE,
@@ -242,7 +267,8 @@ def main(argv: Optional[List[str]] = None) -> int:
         notes.append(str(exc))
     sites = build_sites(detections, baseline, public=True)
     months = sorted({d.observed_at.strftime("%Y-%m") for d in detections})
-    write_outputs(sites, args.out, used, notes, months)
+    write_outputs(sites, args.out, used, notes, months, national_trend(baseline))
+    write_timeline(detections, args.out)
     if nightfire.enabled():
         # Private path only: data/private is git-ignored and never deployed.
         vnf_archive = args.private_out / "nightfire_archive.csv"

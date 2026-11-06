@@ -207,3 +207,16 @@ def test_vnf_csv_parsing_filters_cloud_day_and_missing():
     assert [x.rh_mw for x in d] == [5.0, 4.0]
     assert all(x.source == "nightfire" for x in d)
     assert nightfire.satellite_from_name("VNF_j01_d20261105_noaa_v30.csv.gz") == "N20"
+
+
+def test_national_trend_and_timeline(tmp_path):
+    from flarewatch.sources.base import BaselineFlare
+    t = run.national_trend([BaselineFlare(1, 1, 2024, 0.1), BaselineFlare(2, 2, 2024, 0.05),
+                            BaselineFlare(1, 1, 2025, 0.12)])
+    assert t == [{"year": 2024, "bcm": 0.15}, {"year": 2025, "bcm": 0.12}]
+    import json
+    from dataclasses import replace
+    d = detections()
+    run.write_timeline(d + [replace(d[0], source="nightfire", rh_mw=3.0)], tmp_path)
+    tl = json.loads((tmp_path / "timeline.json").read_text())
+    assert tl["rows"][0][0] == 0 and len(tl["rows"]) <= len(d)
