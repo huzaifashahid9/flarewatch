@@ -8,7 +8,7 @@ const money = (n: number) =>
 
 /** Nights detected per month, as plain SVG bars. Cloudy months are not
  * zero flaring, so the caption says "nights seen", not "nights burning". */
-function MonthlyChart({ months, nights }: { months: string[]; nights: number[] }) {
+export function MonthlyChart({ months, nights }: { months: string[]; nights: number[] }) {
   const max = Math.max(1, ...nights);
   const w = 288, h = 70, gap = 2;
   const bw = (w - gap * (months.length - 1)) / Math.max(1, months.length);
@@ -87,19 +87,32 @@ const OPTIONS: Option[] = [
   },
 ];
 
+// Carbon credits for recovered gas: avoided flaring emissions, AM0009-style
+// screening. Assumes 90% of the flared gas is captured.
+const CAPTURE_SHARE = 0.9;
+
+export function planOptions(q: number, sell: number, tariff: number, km: number,
+                            co2eTPerYr: number, carbonUsdPerT: number) {
+  const credits = co2eTPerYr * CAPTURE_SHARE * carbonUsdPerT;
+  return OPTIONS.map((o) => {
+    const capex = o.capex(q, km);
+    const net = o.netPerYear(q, sell, tariff);
+    const total = net + credits;
+    return { o, capex, net, credits, payback: total > 0 ? capex / total : Infinity, fits: o.fits(q) };
+  }).sort((a, b) => Number(b.fits) - Number(a.fits) || a.payback - b.payback);
+}
+
 function RecoveryPlanner({ site, meta }: { site: SiteProps; meta: Meta }) {
   const v = site.volume!;
   const lng = meta.assumptions?.lng_price_usd_per_mmbtu ?? 18.4;
   const [sell, setSell] = useState(Math.round(lng * 0.5 * 10) / 10);
   const [tariff, setTariff] = useState(0.1);
   const [km, setKm] = useState(10);
+  const [carbon, setCarbon] = useState(10);
   const q = v.mmscfd.mid;
+  const co2 = site.impact?.co2e_t_per_yr.mid ?? 0;
 
-  const rows = useMemo(() => OPTIONS.map((o) => {
-    const capex = o.capex(q, km);
-    const net = o.netPerYear(q, sell, tariff);
-    return { o, capex, net, payback: net > 0 ? capex / net : Infinity, fits: o.fits(q) };
-  }).sort((a, b) => Number(b.fits) - Number(a.fits) || a.payback - b.payback), [q, km, sell, tariff]);
+  const rows = useMemo(() => planOptions(q, sell, tariff, km, co2, carbon), [q, km, sell, tariff, co2, carbon]);
   const best = rows.find((r) => r.fits && Number.isFinite(r.payback));
 
   return (
@@ -109,7 +122,7 @@ function RecoveryPlanner({ site, meta }: { site: SiteProps; meta: Meta }) {
         {q.toLocaleString("en-US", { maximumFractionDigits: 2 })} MMSCFD
         {" "}(range {v.mmscfd.low.toFixed(2)} to {v.mmscfd.high.toFixed(2)}). Change the inputs to test the case.
       </p>
-      <div className="mt-2 grid grid-cols-3 gap-2 text-[11px] text-neutral-400">
+      <div className="mt-2 grid grid-cols-4 gap-2 text-[11px] text-neutral-400">
         <label>Gas price $/MMBtu
           <input type="number" step="0.5" min="0" value={sell} onChange={(e) => setSell(+e.target.value)}
             className="mt-0.5 w-full rounded bg-neutral-800 px-1.5 py-1 text-sm text-white" /></label>
@@ -119,8 +132,17 @@ function RecoveryPlanner({ site, meta }: { site: SiteProps; meta: Meta }) {
         <label>Pipeline km
           <input type="number" step="1" min="0" value={km} onChange={(e) => setKm(+e.target.value)}
             className="mt-0.5 w-full rounded bg-neutral-800 px-1.5 py-1 text-sm text-white" /></label>
+        <label>Carbon $/t
+          <input type="number" step="1" min="0" value={carbon} onChange={(e) => setCarbon(+e.target.value)}
+            className="mt-0.5 w-full rounded bg-neutral-800 px-1.5 py-1 text-sm text-white" /></label>
       </div>
       <div className="mt-3 space-y-2">
+        {rows[0]?.credits > 0 && (
+          <div className="rounded-lg bg-sky-900/30 p-2 text-xs text-sky-200 ring-1 ring-sky-500/40">
+            Carbon credits: about <b>{money(rows[0].credits)}/yr</b> extra
+            ({Math.round(co2 * CAPTURE_SHARE).toLocaleString("en-US")} t CO₂e avoided at ${carbon}/t), included in every payback below.
+          </div>
+        )}
         {rows.map(({ o, capex, net, payback, fits }) => (
           <div key={o.key} className={`rounded-lg p-2.5 ring-1 ${best?.o.key === o.key ? "bg-emerald-900/30 ring-emerald-500/50" : "bg-neutral-900 ring-neutral-800"} ${fits ? "" : "opacity-50"}`}>
             <div className="flex items-baseline justify-between">
@@ -143,6 +165,7 @@ function RecoveryPlanner({ site, meta }: { site: SiteProps; meta: Meta }) {
       <p className="mt-2 text-[11px] leading-snug text-neutral-500">
         Screening figures only: gas engines ${POWER_CAPEX_PER_MW / 1e6}M/MW, CNG ${CNG_CAPEX_PER_MMSCFD / 1e6}M per MMSCFD,
         pipeline ${PIPE_CAPEX_PER_KM / 1e6}M/km plus ${PIPE_FIXED_CAPEX / 1e6}M. Replace with vendor quotes for a real study.
+        Carbon credits assume 90% capture and a registered methodology (for example CDM AM0009 or an Article 6 deal); prices vary widely.
         FlareWatch measures; selling gas needs a licensed buyer under Pakistan&apos;s rules.
       </p>
     </div>
@@ -166,6 +189,10 @@ export default function SiteReport({ site, meta, onClose }: { site: SiteProps; m
           <MonthlyChart months={months} nights={site.monthly_nights} />
         </div>
       )}
+      <a href={`/report/${encodeURIComponent(site.id)}`} target="_blank" rel="noopener"
+        className="mt-3 block rounded-md bg-white py-2 text-center text-sm font-semibold text-black hover:bg-neutral-200">
+        Open audit report (PDF)
+      </a>
       {site.volume ? (
         <RecoveryPlanner site={site} meta={meta} />
       ) : (

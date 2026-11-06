@@ -46,6 +46,7 @@ export type Meta = {
   notes: string[];
   totals?: Totals | null;
   observed_months?: string[];
+  national_trend?: { year: number; bcm: number }[];
   assumptions?: {
     lng_price_usd_per_mmbtu: number;
     lng_price_source: string;
@@ -54,3 +55,5 @@ export type Meta = {
     btu_per_scf: number;
   };
 };
+
+export type Timeline = { start: string; rows: [number, number, number][] };

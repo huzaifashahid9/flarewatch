@@ -1,10 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Map, { Layer, Popup, Source, NavigationControl } from "react-map-gl/maplibre";
 import type { MapLayerMouseEvent } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import type { Meta, SiteProps } from "@/lib-types";
+import type { Meta, SiteProps, Timeline } from "@/lib-types";
+import { indexByDay, TimelapseBar } from "./Timelapse";
+import { MoneyCounter, Tracker2030 } from "./Counter";
 import GoogleFlareMap from "./GoogleFlareMap";
 import SiteReport from "./SiteReport";
 import ReconcilePanel from "./ReconcilePanel";
@@ -36,6 +38,23 @@ export default function FlareMap() {
   const [focus, setFocus] = useState<SiteProps | null>(null);
   const [reconcile, setReconcile] = useState(false);
   const [analyst, setAnalyst] = useState(false);
+  const [timeline, setTimeline] = useState<Timeline | null>(null);
+  const [tlOn, setTlOn] = useState(false);
+  const [day, setDay] = useState(0);
+  const [playing, setPlaying] = useState(false);
+  const tl = useMemo(() => (timeline ? indexByDay(timeline) : null), [timeline]);
+  const stepDay = useCallback((d: number) => {
+    setDay((prev) => (d === -1 ? (tl && prev + 1 < tl.days ? prev + 1 : 0) : d));
+  }, [tl]);
+  const startTimelapse = async () => {
+    setSelected(null); setAnalyst(false); setReconcile(false);
+    if (!timeline) {
+      const r = await fetch("/data/timeline.json");
+      if (!r.ok) return;
+      setTimeline(await r.json());
+    }
+    setDay(0); setTlOn(true); setPlaying(true);
+  };
 
   useEffect(() => {
     Promise.all([
@@ -95,6 +114,7 @@ export default function FlareMap() {
           selected={selected}
           onSelect={setSelected}
           focus={focus}
+          timelapse={tlOn && tl ? { byDay: tl.byDay, day } : null}
           renderSite={(s) => <SitePanel site={s} dre={dre} />}
         />
       ) : (
@@ -160,7 +180,7 @@ export default function FlareMap() {
       </Map>
       )}
 
-      <aside className="absolute left-4 top-4 w-80 max-w-[calc(100%-2rem)] rounded-xl bg-neutral-950/85 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
+      <aside className="absolute left-4 top-4 w-80 max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-neutral-950/85 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
         <h1 className="text-lg font-semibold text-white">FlareWatch</h1>
         <p className="text-neutral-400">Gas flares across Pakistan, seen from space every night.</p>
         {loadError && (
@@ -172,6 +192,7 @@ export default function FlareMap() {
           <>
             {meta.totals && <Headline t={meta.totals} meta={meta} dre={dre} />}
             {meta.totals && <DreToggle dre={dre} onChange={setDre} meta={meta} />}
+            {meta.totals && <MoneyCounter usdPerYear={meta.totals.value_usd_per_yr.mid} />}
             <div className="mt-3 grid grid-cols-3 gap-2 text-center">
               <Stat label="Persistent" value={counts.persistent} />
               <Stat label="Intermittent" value={counts.intermittent} />
@@ -192,6 +213,12 @@ export default function FlareMap() {
                 crop fires or industry. They are confirmed or dropped as data builds up.
               </p>
             )}
+            {GOOGLE_KEY && (
+              <button onClick={() => (tlOn ? (setTlOn(false), setPlaying(false)) : startTimelapse())}
+                className="mt-3 w-full rounded-md bg-white py-2 text-sm font-semibold text-black hover:bg-neutral-200">
+                {tlOn ? "Stop the time-lapse" : "▶ Play a year of flares in 60 seconds"}
+              </button>
+            )}
             <button onClick={() => { setSelected(null); setReconcile(false); setAnalyst(true); }}
               className="mt-3 w-full rounded-md bg-orange-500 py-2 text-sm font-semibold text-black hover:bg-orange-400">
               Ask the AI analyst
@@ -200,10 +227,15 @@ export default function FlareMap() {
               className="mt-2 w-full rounded-md bg-neutral-800 py-2 text-sm font-medium text-white hover:bg-neutral-700">
               Check a flare report against satellites
             </button>
+            <Tracker2030 meta={meta} />
             <DataHealth meta={meta} />
           </>
         )}
       </aside>
+      {tlOn && tl && timeline && (
+        <TimelapseBar start={timeline.start} days={tl.days} day={day} playing={playing}
+          count={tl.byDay.get(day)?.length ?? 0} onDay={stepDay} onPlay={setPlaying} />
+      )}
       {analyst && !selected && !reconcile && <AnalystPanel onClose={() => setAnalyst(false)} />}
       {reconcile && !selected && data && (
         <ReconcilePanel sites={data.features.map((f) => f.properties)} onClose={() => setReconcile(false)}

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { APIProvider, ControlPosition, InfoWindow, Map, useMap } from "@vis.gl/react-google-maps";
 import type { SiteProps } from "@/lib-types";
+import { TimelapseLayer, type DayIndex } from "./Timelapse";
 
 type FC = GeoJSON.FeatureCollection<GeoJSON.Point, SiteProps>;
 
@@ -13,7 +14,7 @@ const COLOR: Record<string, string> = {
 };
 const SCALE: Record<string, number> = { persistent: 7, intermittent: 5.5 };
 
-function SitesLayer({ data, onSelect }: { data: FC; onSelect: (s: SiteProps | null) => void }) {
+function SitesLayer({ data, onSelect, dim = false }: { data: FC; onSelect: (s: SiteProps | null) => void; dim?: boolean }) {
   const map = useMap();
   useEffect(() => {
     if (!map) return;
@@ -28,9 +29,9 @@ function SitesLayer({ data, onSelect }: { data: FC; onSelect: (s: SiteProps | nu
           fillColor: COLOR[cls] ?? "#c2410c",
           // Known World Bank flares are solid; unconfirmed heat sources are
           // faint so they never read as flares.
-          fillOpacity: known ? 1 : 0.35,
+          fillOpacity: dim ? 0.08 : known ? 1 : 0.35,
           strokeColor: known ? "#1a1a1a" : "#ffb020",
-          strokeWeight: known ? 1 : 1.5,
+          strokeWeight: dim ? 0 : known ? 1 : 1.5,
         },
       };
     });
@@ -43,7 +44,7 @@ function SitesLayer({ data, onSelect }: { data: FC; onSelect: (s: SiteProps | nu
       click.remove();
       added.forEach((f) => map.data.remove(f));
     };
-  }, [map, data, onSelect]);
+  }, [map, data, onSelect, dim]);
   return null;
 }
 
@@ -60,8 +61,9 @@ function Focus({ site }: { site: SiteProps | null }) {
 }
 
 export default function GoogleFlareMap({
-  apiKey, data, selected, onSelect, renderSite, focus = null,
+  apiKey, data, selected, onSelect, renderSite, focus = null, timelapse = null,
 }: {
+  timelapse?: { byDay: DayIndex; day: number } | null;
   focus?: SiteProps | null;
   apiKey: string;
   data: FC | null;
@@ -84,8 +86,9 @@ export default function GoogleFlareMap({
         style={{ width: "100%", height: "100%" }}
         onClick={() => onSelect(null)}
       >
-        {data && <SitesLayer data={data} onSelect={onSelect} />}
+        {data && <SitesLayer data={data} onSelect={onSelect} dim={!!timelapse} />}
         <Focus site={focus} />
+        {timelapse && <TimelapseLayer byDay={timelapse.byDay} day={timelapse.day} />}
         {selected && (
           <InfoWindow
             position={{ lat: selected.lat, lng: selected.lon }}
