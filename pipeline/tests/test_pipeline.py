@@ -132,7 +132,7 @@ def test_archive_roundtrip_and_dedupe(tmp_path):
 
 def test_public_output_never_uses_nightfire():
     from dataclasses import replace
-    d = [replace(x, rh75_mw=10.0) for x in detections()]
+    d = [replace(x, rh_mw=10.0) for x in detections()]
     public = run.build_sites(d, [], public=True)
     assert public[0]["volume"] is None
     private = run.build_sites(d, [], public=False)
@@ -178,5 +178,32 @@ def test_monthly_nights_align_with_months():
 def test_public_archive_never_keeps_nightfire_rows():
     from dataclasses import replace
     d = detections()
-    vnf = [replace(x, source="nightfire", rh75_mw=5.0) for x in d]
+    vnf = [replace(x, source="nightfire", rh_mw=5.0) for x in d]
     assert run.public_only(d + vnf) == d
+
+
+def test_rh75_sums_pixels_above_75_percent_of_peak():
+    from datetime import datetime, timezone
+    from flarewatch.sources.base import Detection
+    t = datetime(2026, 11, 5, 20, 30, tzinfo=timezone.utc)
+    px = [Detection(27.7, 68.8, t, "N20", "nightfire", rh_mw=v) for v in (10.0, 8.0, 7.0, 2.0)]
+    later = [Detection(27.7, 68.8, t.replace(hour=22), "N20", "nightfire", rh_mw=4.0)]
+    r = run.overpass_rh75(px + later)
+    assert sorted(r.values()) == [4.0, 18.0]
+
+
+def test_vnf_csv_parsing_filters_cloud_day_and_missing():
+    from flarewatch.sources import nightfire
+    df = pd.DataFrame({
+        "Lat_GMTCO": [27.7, 27.7, 27.7, 27.7, 50.0],
+        "Lon_GMTCO": [68.8, 68.8, 68.8, 68.8, 10.0],
+        "Date_Mscan": ["2026/11/05 20:31:02.123"] * 5,
+        "Temp_BB": [1800, 1700, 999999, 1800, 1800],
+        "RH": [5.0, 4.0, 999999.0, 3.0, 9.0],
+        "Cloud_Mask": [0, 1, 0, 3, 0],
+        "SOLZ_GMTCO": [120, 120, 120, 120, 120],
+    })
+    d = nightfire.parse_frame(df, "N20")
+    assert [x.rh_mw for x in d] == [5.0, 4.0]
+    assert all(x.source == "nightfire" for x in d)
+    assert nightfire.satellite_from_name("VNF_j01_d20261105_noaa_v30.csv.gz") == "N20"

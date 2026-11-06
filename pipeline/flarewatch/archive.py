@@ -12,13 +12,17 @@ import pandas as pd
 from .sources.base import Detection
 
 COLUMNS = ["lat", "lon", "observed_at", "satellite", "source", "frp_mw",
-           "rh75_mw", "temperature_k", "confidence"]
+           "rh_mw", "temperature_k", "confidence"]
 
 
 def load(path: Path) -> List[Detection]:
     if not Path(path).exists():
         return []
     df = pd.read_csv(path, parse_dates=["observed_at"])
+    # Older archives named the Nightfire column rh75_mw.
+    df = df.rename(columns={"rh75_mw": "rh_mw"})
+    if "rh_mw" not in df:
+        df["rh_mw"] = None
     out = []
     for r in df.itertuples(index=False):
         def opt(v):
@@ -27,7 +31,7 @@ def load(path: Path) -> List[Detection]:
             lat=float(r.lat), lon=float(r.lon),
             observed_at=r.observed_at.to_pydatetime().astimezone(timezone.utc),
             satellite=str(r.satellite), source=str(r.source),
-            frp_mw=opt(r.frp_mw), rh75_mw=opt(r.rh75_mw),
+            frp_mw=opt(r.frp_mw), rh_mw=opt(r.rh_mw),
             temperature_k=opt(r.temperature_k),
             confidence=None if pd.isna(r.confidence) else str(r.confidence),
         ))

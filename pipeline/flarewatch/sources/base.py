@@ -22,7 +22,7 @@ class Detection:
     satellite: str  # e.g. "N20", "N21"
     source: str  # plug name, e.g. "firms"
     frp_mw: Optional[float] = None  # FIRMS fire radiative power
-    rh75_mw: Optional[float] = None  # Nightfire radiant heat, licence only
+    rh_mw: Optional[float] = None  # Nightfire per-pixel radiant heat (VNF "RH"), licence only
     temperature_k: Optional[float] = None  # Nightfire only
     confidence: Optional[str] = None
 

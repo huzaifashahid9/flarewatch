@@ -13,6 +13,8 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
+from dataclasses import replace
+
 import numpy as np
 
 from . import archive, geo
@@ -68,10 +70,15 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
             continue
         frps = [d.frp_mw for d in s.detections if d.frp_mw is not None]
         mean_frp = float(np.mean(frps)) if frps else None
-        rh = [d.rh75_mw for d in s.detections if d.rh75_mw is not None]
+        rh75 = overpass_rh75([d for d in s.detections if d.rh_mw is not None])
         vol: Optional[estimate.VolumeEstimate] = None
-        if rh and not public:
-            vol = estimate.volume_from_rh75(float(np.mean(rh)))
+        if rh75 and not public:
+            # Mean flow rate over the clear overpasses where the flare was
+            # detected. The preprint also counts clear overpasses with no
+            # detection as zero; we cannot see those in detection files, so
+            # this is the rate while burning (an upper bound on the average).
+            vol = estimate.volume_from_rh75(float(np.mean(list(rh75.values()))))
+            vol = replace(vol, note=vol.note + "; rate while burning, clear overpasses only")
         elif match is not None:
             hist = frp_history.get(s.site_id)
             ratio = (mean_frp / hist) if (mean_frp and hist) else None
@@ -96,7 +103,34 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
 
 def public_only(detections: Sequence[Detection]) -> List[Detection]:
     """Drop anything derived from VIIRS Nightfire before it can reach a public file."""
-    return [d for d in detections if d.source != "nightfire" and d.rh75_mw is None]
+    return [d for d in detections if d.source != "nightfire" and d.rh_mw is None]
+
+
+OVERPASS_GAP = timedelta(minutes=10)
+
+
+def overpass_rh75(dets: Sequence[Detection]) -> Dict[Tuple[str, str], float]:
+    """RH75 per satellite overpass (Zhizhin et al. 2026, Eqs. 2-3): the sum of
+    radiant heat over pixels above 75% of that overpass's brightest pixel."""
+    out: Dict[Tuple[str, str], float] = {}
+    by_sat: Dict[str, List[Detection]] = {}
+    for d in dets:
+        by_sat.setdefault(d.satellite, []).append(d)
+    for sat, ds in by_sat.items():
+        ds.sort(key=lambda d: d.observed_at)
+        group: List[Detection] = []
+        def flush():
+            if group:
+                peak = max(g.rh_mw for g in group)
+                out[(sat, group[0].observed_at.isoformat())] = sum(
+                    g.rh_mw for g in group if g.rh_mw > 0.75 * peak)
+        for d in ds:
+            if group and d.observed_at - group[-1].observed_at > OVERPASS_GAP:
+                flush()
+                group = []
+            group.append(d)
+        flush()
+    return out
 
 
 def monthly_nights(site: clustering.Site, months: Sequence[str]) -> List[int]:
