@@ -4,7 +4,7 @@ export type SiteProps = {
   id: string;
   lat: number;
   lon: number;
-  activity_class: "persistent" | "intermittent" | "sporadic" | "monitoring" | "unknown";
+  activity_class: "persistent" | "intermittent" | "sporadic" | "monitoring" | "new" | "unknown";
   active_share: number;
   nights_detected: number;
   last_seen: string;
@@ -21,6 +21,8 @@ export type SiteProps = {
   } | null;
   impact?: Impact;
   monthly_nights?: number[];
+  first_seen?: string;
+  nearest_field?: { name: string; operator: string | null; km: number } | null;
 };
 
 export type Impact = {
@@ -28,6 +30,8 @@ export type Impact = {
   co2e_t_per_yr_at_observed_dre: Range;
   power_mw: Range;
   value_usd_per_yr: Range;
+  lng_cargoes_per_yr?: Range;
+  homes_powered?: Range;
 };
 
 export type Totals = Impact & {
@@ -47,6 +51,7 @@ export type Meta = {
   totals?: Totals | null;
   observed_months?: string[];
   national_trend?: { year: number; bcm: number }[];
+  new_sites?: string[];
   assumptions?: {
     lng_price_usd_per_mmbtu: number;
     lng_price_source: string;

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Meta } from "@/lib-types";
+import { useT } from "@/i18n";
 
 // Assumed exchange rate for display only; change here if it moves.
 const PKR_PER_USD = 280;
@@ -15,19 +16,21 @@ export function MoneyCounter({ usdPerYear }: { usdPerYear: number }) {
     return () => window.clearInterval(id);
   }, []);
   const pkr = (usdPerYear / SECONDS_PER_YEAR) * secs * PKR_PER_USD;
+  const t = useT();
   return (
     <div className="mt-2 rounded-lg bg-black/40 p-2.5 ring-1 ring-red-500/30">
-      <div className="text-[11px] text-neutral-400">Since you opened this page, Pakistan has burned</div>
+      <div className="text-[11px] text-neutral-400">{t("Since you opened this page, Pakistan has burned")}</div>
       <div className="font-mono text-2xl font-bold tabular-nums text-red-300">
         Rs {pkr.toLocaleString("en-PK", { maximumFractionDigits: 0 })}
       </div>
-      <div className="text-[10px] text-neutral-500">of gas, at the known flares (Rs {PKR_PER_USD}/$ assumed)</div>
+      <div className="text-[10px] text-neutral-500">{t("of gas, at the known flares (Rs {r}/$ assumed)", { r: PKR_PER_USD })}</div>
     </div>
   );
 }
 
 /** World Bank yearly totals with the straight path to zero by 2030. */
 export function Tracker2030({ meta }: { meta: Meta }) {
+  const tr = useT();
   const t = meta.national_trend ?? [];
   if (t.length < 2) return null;
   const last = t[t.length - 1];
@@ -41,7 +44,7 @@ export function Tracker2030({ meta }: { meta: Meta }) {
   return (
     <div className="mt-3 rounded-lg bg-neutral-900 p-2.5">
       <div className="flex items-baseline justify-between">
-        <span className="text-xs font-semibold text-white">Road to zero routine flaring, 2030</span>
+        <span className="text-xs font-semibold text-white">{tr("Road to zero routine flaring, 2030")}</span>
         <span className="text-[10px] text-neutral-500">World Bank, all flares</span>
       </div>
       <svg viewBox={`0 0 ${w} ${h + 12}`} className="mt-1 w-full" role="img" aria-label="Pakistan flaring trend and path to 2030">

@@ -7,6 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Meta, SiteProps, Timeline } from "@/lib-types";
 import { indexByDay, TimelapseBar } from "./Timelapse";
 import { MoneyCounter, Tracker2030 } from "./Counter";
+import { LangContext, useT, type Lang } from "@/i18n";
 import GoogleFlareMap from "./GoogleFlareMap";
 import SiteReport from "./SiteReport";
 import ReconcilePanel from "./ReconcilePanel";
@@ -38,6 +39,7 @@ export default function FlareMap() {
   const [focus, setFocus] = useState<SiteProps | null>(null);
   const [reconcile, setReconcile] = useState(false);
   const [analyst, setAnalyst] = useState(false);
+  const [lang, setLang] = useState<Lang>("en");
   const [timeline, setTimeline] = useState<Timeline | null>(null);
   const [tlOn, setTlOn] = useState(false);
   const [day, setDay] = useState(0);
@@ -76,7 +78,7 @@ export default function FlareMap() {
   }, []);
 
   const counts = useMemo(() => {
-    const c = { persistent: 0, intermittent: 0, monitoring: 0, known: 0 };
+    const c = { persistent: 0, intermittent: 0, monitoring: 0, known: 0, new: 0 };
     data?.features.forEach((f) => {
       if (f.properties.in_world_bank_catalogue) c.known += 1;
       const k = f.properties.activity_class as keyof typeof c;
@@ -106,6 +108,7 @@ export default function FlareMap() {
   };
 
   return (
+    <LangContext.Provider value={lang}>
     <div className="relative h-full w-full">
       {GOOGLE_KEY ? (
         <GoogleFlareMap
@@ -155,6 +158,7 @@ export default function FlareMap() {
                   "persistent", "#ffb020",
                   "intermittent", "#ff7a1a",
                   "monitoring", "#a3a3a3",
+                  "new", "#22d3ee",
                   "#c2410c",
                 ],
                 // Known World Bank flares are solid; unconfirmed heat
@@ -180,9 +184,15 @@ export default function FlareMap() {
       </Map>
       )}
 
-      <aside className="absolute left-4 top-4 w-80 max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-neutral-950/85 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
-        <h1 className="text-lg font-semibold text-white">FlareWatch</h1>
-        <p className="text-neutral-400">Gas flares across Pakistan, seen from space every night.</p>
+      <aside dir={lang === "ur" ? "rtl" : "ltr"} className="absolute left-4 top-4 w-80 max-w-[calc(100%-2rem)] max-h-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-neutral-950/85 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
+        <div className="flex items-center justify-between">
+          <h1 className="text-lg font-semibold text-white">FlareWatch</h1>
+          <button onClick={() => setLang(lang === "en" ? "ur" : "en")}
+            className="rounded bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 hover:bg-neutral-700">
+            {lang === "en" ? "اردو" : "English"}
+          </button>
+        </div>
+        <LeftText k="Gas flares across Pakistan, seen from space every night." className="text-neutral-400" />
         {loadError && (
           <p className="mt-3 rounded-md bg-neutral-800 p-2 text-neutral-300">
             No data yet. The nightly job has not produced a run for this deployment.
@@ -202,11 +212,20 @@ export default function FlareMap() {
                 <Stat label="Known flares" value={counts.known} />
               )}
             </div>
-            <p className="mt-2 text-xs text-neutral-400">
-              {counts.known} of {data.features.length} sites match known flares in the
-              World Bank catalogue (solid dots). Faint dots are unconfirmed heat
-              sources, which may be cement, steel or brick plants.
-            </p>
+            <LeftText className="mt-2 text-xs text-neutral-400"
+              k="{k} of {n} sites match known flares in the World Bank catalogue (solid dots). Faint dots are unconfirmed heat sources, which may be cement, steel or brick plants."
+              vars={{ k: counts.known, n: data.features.length }} />
+            {counts.new > 0 && (
+              <div className="mt-2 rounded-lg bg-cyan-900/30 p-2 ring-1 ring-cyan-400/40">
+                <LeftText className="text-xs font-semibold text-cyan-200" k="New flares in the last two weeks" />
+                {data.features.filter((f) => f.properties.activity_class === "new").map((f) => (
+                  <button key={f.properties.id} onClick={() => { setSelected(f.properties); setFocus(f.properties); }}
+                    className="block text-left text-xs text-cyan-100 underline">
+                    {f.properties.id}{f.properties.nearest_field ? ` · ${f.properties.nearest_field.name}` : ""}
+                  </button>
+                ))}
+              </div>
+            )}
             {counts.monitoring > 0 && (
               <p className="mt-2 text-xs text-neutral-400">
                 Grey sites have under 3 months of history, so they may still be
@@ -216,16 +235,16 @@ export default function FlareMap() {
             {GOOGLE_KEY && (
               <button onClick={() => (tlOn ? (setTlOn(false), setPlaying(false)) : startTimelapse())}
                 className="mt-3 w-full rounded-md bg-white py-2 text-sm font-semibold text-black hover:bg-neutral-200">
-                {tlOn ? "Stop the time-lapse" : "▶ Play a year of flares in 60 seconds"}
+                <LeftText k={tlOn ? "Stop the time-lapse" : "▶ Play a year of flares in 60 seconds"} />
               </button>
             )}
             <button onClick={() => { setSelected(null); setReconcile(false); setAnalyst(true); }}
               className="mt-3 w-full rounded-md bg-orange-500 py-2 text-sm font-semibold text-black hover:bg-orange-400">
-              Ask the AI analyst
+              <LeftText k="Ask the AI analyst" />
             </button>
             <button onClick={() => { setSelected(null); setAnalyst(false); setReconcile(true); }}
               className="mt-2 w-full rounded-md bg-neutral-800 py-2 text-sm font-medium text-white hover:bg-neutral-700">
-              Check a flare report against satellites
+              <LeftText k="Check a flare report against satellites" />
             </button>
             <Tracker2030 meta={meta} />
             <DataHealth meta={meta} />
@@ -245,14 +264,21 @@ export default function FlareMap() {
         <SiteReport site={selected} meta={meta} onClose={() => setSelected(null)} />
       )}
     </div>
+    </LangContext.Provider>
   );
 }
 
+function LeftText({ k, vars, className }: { k: string; vars?: Record<string, string | number>; className?: string }) {
+  const t = useT();
+  return <span className={className ? `block ${className}` : undefined}>{t(k, vars)}</span>;
+}
+
 function Stat({ label, value }: { label: string; value: number }) {
+  const t = useT();
   return (
     <div className="rounded-md bg-neutral-900 p-2">
       <div className="text-xl font-semibold text-white">{value}</div>
-      <div className="text-xs text-neutral-400">{label}</div>
+      <div className="text-xs text-neutral-400">{t(label)}</div>
     </div>
   );
 }
@@ -262,7 +288,7 @@ function DataHealth({ meta }: { meta: Meta }) {
   return (
     <div className="mt-3 border-t border-neutral-800 pt-3 text-xs text-neutral-400">
       <div>
-        Last updated{" "}
+        <LeftText k="Last updated" />{" "}
         <span className="text-neutral-200">
           {updated.toLocaleString("en-PK", { timeZone: "Asia/Karachi" })} PKT
         </span>
@@ -280,21 +306,28 @@ function DataHealth({ meta }: { meta: Meta }) {
 
 function SitePanel({ site, dre }: { site: SiteProps; dre: Dre }) {
   const v = site.volume;
+  const t = useT();
   return (
     <div className="text-sm text-neutral-900">
-      <div className="font-semibold capitalize">{site.activity_class} site</div>
+      <div className="font-semibold capitalize">{t(site.activity_class.charAt(0).toUpperCase() + site.activity_class.slice(1))} {t("site")}</div>
       {site.in_world_bank_catalogue ? (
-        <div className="text-xs text-emerald-700">Known flare (World Bank {site.baseline_year})</div>
+        <div className="text-xs text-emerald-700">{t("Known flare (World Bank {y})", { y: site.baseline_year ?? "" })}</div>
       ) : (
         <div className="text-xs text-amber-700">
-          Unconfirmed: not a known flare. Could be a cement, steel or brick plant.
+          {t("Unconfirmed: not a known flare. Could be a cement, steel or brick plant.")}
+        </div>
+      )}
+      {site.nearest_field && (
+        <div className="text-xs text-neutral-700">
+          {t("Nearest named field: {f} ({km} km, OpenStreetMap)", { f: site.nearest_field.name, km: site.nearest_field.km })}
+          {site.nearest_field.operator ? ` · ${site.nearest_field.operator}` : ""}
         </div>
       )}
       <div className="text-xs text-neutral-600">
         {site.lat.toFixed(4)}, {site.lon.toFixed(4)}
       </div>
       <div className="mt-2">
-        Seen on {site.nights_detected} nights, last {site.last_seen}
+        {t("Seen on {n} nights, last {d}", { n: site.nights_detected, d: site.last_seen })}
       </div>
       <div>Satellites: {site.satellites.join(", ")}</div>
       {site.mean_frp_mw != null && <div>Brightness: {fmt(site.mean_frp_mw, 1)} MW (FIRMS FRP)</div>}

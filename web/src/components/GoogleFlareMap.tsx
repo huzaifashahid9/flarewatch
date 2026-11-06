@@ -11,8 +11,9 @@ const COLOR: Record<string, string> = {
   persistent: "#ffb020",
   intermittent: "#ff7a1a",
   monitoring: "#a3a3a3",
+  new: "#22d3ee",
 };
-const SCALE: Record<string, number> = { persistent: 7, intermittent: 5.5 };
+const SCALE: Record<string, number> = { persistent: 7, intermittent: 5.5, new: 6.5 };
 
 function SitesLayer({ data, onSelect, dim = false }: { data: FC; onSelect: (s: SiteProps | null) => void; dim?: boolean }) {
   const map = useMap();
