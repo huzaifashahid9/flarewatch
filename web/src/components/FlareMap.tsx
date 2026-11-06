@@ -7,7 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Meta, SiteProps, Timeline } from "@/lib-types";
 import { indexByDay, TimelapseBar } from "./Timelapse";
 import { MoneyCounter, Tracker2030 } from "./Counter";
-import { LangContext, useT, type Lang } from "@/i18n";
+import { LangContext, useLang, useT, type Lang } from "@/i18n";
 import GoogleFlareMap from "./GoogleFlareMap";
 import SiteReport from "./SiteReport";
 import ReconcilePanel from "./ReconcilePanel";
@@ -113,7 +113,7 @@ export default function FlareMap() {
 
   return (
     <LangContext.Provider value={lang}>
-    <div className="relative h-full w-full">
+    <div className={`relative h-full w-full ${lang === "ur" ? "font-urdu" : ""}`}>
       {GOOGLE_KEY ? (
         <GoogleFlareMap
           apiKey={GOOGLE_KEY}
@@ -204,9 +204,8 @@ export default function FlareMap() {
         </div>
         <LeftText k="Gas flares across Pakistan, seen from space every night." className="text-neutral-400" />
         {loadError && (
-          <p className="mt-3 rounded-md bg-neutral-800 p-2 text-neutral-300">
-            No data yet. The nightly job has not produced a run for this deployment.
-          </p>
+          <LeftText className="mt-3 rounded-md bg-neutral-800 p-2 text-neutral-300"
+            k="No data yet. The nightly job has not produced a run for this deployment." />
         )}
         {data && meta && mode === "simple" && (
           <div className="mt-3">
@@ -244,15 +243,13 @@ export default function FlareMap() {
               </div>
             )}
             {counts.monitoring > 0 && (
-              <p className="mt-2 text-xs text-neutral-400">
-                Grey sites have under 3 months of history, so they may still be
-                crop fires or industry. They are confirmed or dropped as data builds up.
-              </p>
+              <LeftText className="mt-2 text-xs text-neutral-400"
+                k="Grey sites have under 3 months of history, so they may still be crop fires or industry. They are confirmed or dropped as data builds up." />
             )}
             {GOOGLE_KEY && (
               <button onClick={() => (tlOn ? (setTlOn(false), setPlaying(false)) : startTimelapse())}
                 className="mt-3 w-full rounded-md bg-white py-2 text-sm font-semibold text-black hover:bg-neutral-200">
-                <LeftText k={tlOn ? "Stop the time-lapse" : "▶ Play a year of flares in 60 seconds"} />
+                <LeftText k={tlOn ? "Stop the time-lapse" : "Play a year of flares in 60 seconds"} />
               </button>
             )}
             <button onClick={() => { setSelected(null); setReconcile(false); setAnalyst(true); }}
@@ -300,7 +297,12 @@ function Stat({ label, value }: { label: string; value: number }) {
   );
 }
 
+const SOURCE_NAME: Record<string, string> = {
+  "nasa-firms": "NASA FIRMS", "world-bank-per-flare": "World Bank", openstreetmap: "OpenStreetMap", nightfire: "VIIRS Nightfire",
+};
+
 function DataHealth({ meta }: { meta: Meta }) {
+  const t = useT();
   const updated = new Date(meta.generated_at);
   return (
     <div className="mt-3 border-t border-neutral-800 pt-3 text-xs text-neutral-400">
@@ -310,8 +312,8 @@ function DataHealth({ meta }: { meta: Meta }) {
           {updated.toLocaleString("en-PK", { timeZone: "Asia/Karachi" })} PKT
         </span>
       </div>
-      <div>Satellites: {meta.firms_satellites.join(", ")}</div>
-      <div>Sources: {meta.sources.join(", ")}</div>
+      <div>{t("Satellites")}: <span dir="ltr">{meta.firms_satellites.map((s) => s.replace("VIIRS_", "").replace("_NRT", "")).join(", ")}</span></div>
+      <div>{t("Sources")}: <span dir="ltr">{meta.sources.map((s) => SOURCE_NAME[s] ?? s).join(", ")}</span></div>
       {meta.notes.map((n) => (
         <div key={n} className="mt-1 text-amber-300/80">
           {n}
@@ -324,8 +326,9 @@ function DataHealth({ meta }: { meta: Meta }) {
 function SitePanel({ site, dre }: { site: SiteProps; dre: Dre }) {
   const v = site.volume;
   const t = useT();
+  const lang = useLang();
   return (
-    <div className="text-sm text-neutral-900">
+    <div dir={lang === "ur" ? "rtl" : "ltr"} className="text-sm text-neutral-900">
       <div className="font-semibold capitalize">{t(site.activity_class.charAt(0).toUpperCase() + site.activity_class.slice(1))} {t("site")}</div>
       {site.in_world_bank_catalogue ? (
         <div className="text-xs text-emerald-700">{t("Known flare (World Bank {y})", { y: site.baseline_year ?? "" })}</div>
@@ -340,31 +343,31 @@ function SitePanel({ site, dre }: { site: SiteProps; dre: Dre }) {
           {site.nearest_field.operator ? ` · ${site.nearest_field.operator}` : ""}
         </div>
       )}
-      <div className="text-xs text-neutral-600">
+      <div className="text-xs text-neutral-600" dir="ltr">
         {site.lat.toFixed(4)}, {site.lon.toFixed(4)}
       </div>
       <div className="mt-2">
         {t("Seen on {n} nights, last {d}", { n: site.nights_detected, d: site.last_seen })}
       </div>
-      <div>Satellites: {site.satellites.join(", ")}</div>
-      {site.mean_frp_mw != null && <div>Brightness: {fmt(site.mean_frp_mw, 1)} MW (FIRMS FRP)</div>}
+      <div>{t("Satellites")}: {site.satellites.join(", ")}</div>
+      {site.mean_frp_mw != null && <div>{t("Brightness: {b} MW (FIRMS FRP)", { b: fmt(site.mean_frp_mw, 1) })}</div>}
       {v ? (
         <div className="mt-2 rounded bg-orange-50 p-2">
           <div className="font-medium">
             {fmt(v.mmscfd.mid)} MMSCFD{" "}
             <span className="text-neutral-600">
-              (range {fmt(v.mmscfd.low)} to {fmt(v.mmscfd.high)})
+              {t("(range {a} to {b})", { a: fmt(v.mmscfd.low), b: fmt(v.mmscfd.high) })}
             </span>
           </div>
-          <div className="text-xs text-neutral-600">{METHOD_LABEL[v.method]}</div>
+          <div className="text-xs text-neutral-600">{t(METHOD_LABEL[v.method])}</div>
           {site.impact && <SiteImpact i={site.impact} dre={dre} />}
           {v.extrapolated && (
-            <div className="text-xs text-amber-700">Above the tested calibration range</div>
+            <div className="text-xs text-amber-700">{t("Above the tested calibration range")}</div>
           )}
         </div>
       ) : (
         <div className="mt-2 text-xs text-neutral-600">
-          No volume yet: not in the World Bank catalogue and no Nightfire data.
+          {t("No volume yet: not in the World Bank catalogue and no Nightfire data.")}
         </div>
       )}
     </div>

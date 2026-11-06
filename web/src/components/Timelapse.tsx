@@ -1,5 +1,8 @@
 "use client";
 
+import { useT } from "@/i18n";
+import { PauseIcon, PlayIcon } from "./Icons";
+
 import { useEffect, useMemo, useRef } from "react";
 import { useMap } from "@vis.gl/react-google-maps";
 import type { Timeline } from "@/lib-types";
@@ -64,6 +67,7 @@ export function TimelapseBar({ start, days, day, playing, onDay, onPlay, count }
   onDay: (d: number) => void; onPlay: (p: boolean) => void;
 }) {
   const tick = useRef<number | null>(null);
+  const t = useT();
   useEffect(() => {
     if (!playing) return;
     // About 60 seconds for a full year.
@@ -76,12 +80,12 @@ export function TimelapseBar({ start, days, day, playing, onDay, onPlay, count }
       <div className="flex items-center gap-3">
         <button onClick={() => onPlay(!playing)} aria-label={playing ? "Pause" : "Play"}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-orange-500 text-lg text-black">
-          {playing ? "❚❚" : "▶"}
+          {playing ? <PauseIcon className="h-4 w-4" /> : <PlayIcon className="h-4 w-4" />}
         </button>
         <div className="flex-1">
           <div className="flex justify-between text-xs">
             <span className="font-semibold text-white">{dayLabel(start, day)}</span>
-            <span className="text-neutral-400">{count} fires seen that night</span>
+            <span className="text-neutral-400">{t("{n} fires seen that night", { n: count })}</span>
           </div>
           <input type="range" min={0} max={days - 1} value={day} onChange={(e) => { onPlay(false); onDay(+e.target.value); }}
             className="mt-1 w-full accent-orange-500" style={{ backgroundSize: `${pct}% 100%` }} aria-label="Night" />

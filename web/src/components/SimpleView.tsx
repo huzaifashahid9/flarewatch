@@ -1,10 +1,13 @@
 "use client";
 
+import type React from "react";
+
 // The plain-language view: big numbers in rupees and homes, no jargon.
 // The expert view (FlareMap's original panel) is one tap away.
 
 import type { Meta, SiteProps } from "@/lib-types";
-import { useT } from "@/i18n";
+import { useT, useLang } from "@/i18n";
+import { ChatIcon, CoinIcon, FlameIcon, HomeIcon, PlayIcon, SatelliteIcon, SparkIcon } from "./Icons";
 
 const PKR_PER_USD = 280; // assumed, same as the money counter
 const HOURS_PER_YEAR = 8760;
@@ -34,7 +37,7 @@ export function SimplePanel({ meta, counts, onPlay, playing, onExpert, onAsk }: 
       {tot && (
         <div className="rounded-xl bg-gradient-to-br from-orange-600/30 to-red-900/30 p-4 ring-1 ring-orange-500/40">
           <div className="text-sm text-orange-100">{t("Every year, Pakistan burns away gas worth")}</div>
-          <div className="mt-1 text-4xl font-bold text-white">
+          <div className="mt-1 text-4xl font-bold text-white" style={{ lineHeight: 1.5 }}>
             {t("Rs {n} crore", { n: num(crore(tot.value_usd_per_yr.mid)) })}
           </div>
           <div className="mt-1 text-sm text-orange-100">
@@ -44,15 +47,15 @@ export function SimplePanel({ meta, counts, onPlay, playing, onExpert, onAsk }: 
       )}
 
       <div className="grid grid-cols-2 gap-2">
-        <Tile icon="🔥" value={counts.known} label={t("gas flares we can see")} />
-        <Tile icon="🆕" value={counts.new} label={t("new flares in the last 2 weeks")} />
+        <Tile icon={<FlameIcon className="h-6 w-6 text-orange-400" />} value={counts.known} label={t("gas flares we can see")} />
+        <Tile icon={<SparkIcon className="h-6 w-6 text-cyan-300" />} value={counts.new} label={t("new flares in the last 2 weeks")} />
       </div>
 
       <div className="rounded-xl bg-neutral-900 p-3">
         <div className="mb-2 text-sm font-semibold text-white">{t("How it works")}</div>
-        <Step icon="🛰️" text={t("Satellites fly over Pakistan every night.")} />
-        <Step icon="🔥" text={t("They spot the heat of gas being burned at oil and gas fields.")} />
-        <Step icon="💰" text={t("We work out how much money and electricity is lost.")} />
+        <Step icon={<SatelliteIcon className="h-5 w-5 text-sky-300" />} text={t("Satellites fly over Pakistan every night.")} />
+        <Step icon={<FlameIcon className="h-5 w-5 text-orange-400" />} text={t("They spot the heat of gas being burned at oil and gas fields.")} />
+        <Step icon={<CoinIcon className="h-5 w-5 text-emerald-300" />} text={t("We work out how much money and electricity is lost.")} />
       </div>
 
       <div className="rounded-xl bg-neutral-900 p-3 text-sm">
@@ -66,12 +69,13 @@ export function SimplePanel({ meta, counts, onPlay, playing, onExpert, onAsk }: 
       {onPlay && (
         <button onClick={onPlay}
           className="w-full rounded-lg bg-white py-2.5 text-sm font-semibold text-black hover:bg-neutral-200">
-          {playing ? t("Stop the time-lapse") : t("▶ Watch a whole year in one minute")}
+          <span className="inline-flex items-center gap-1.5"><PlayIcon className="h-4 w-4" />
+            {playing ? t("Stop the time-lapse") : t("Watch a whole year in one minute")}</span>
         </button>
       )}
       <button onClick={onAsk}
         className="w-full rounded-lg bg-orange-500 py-2.5 text-sm font-semibold text-black hover:bg-orange-400">
-        {t("💬 Ask a question in plain words")}
+        <span className="inline-flex items-center gap-1.5"><ChatIcon className="h-4 w-4" />{t("Ask a question in plain words")}</span>
       </button>
       <button onClick={onExpert}
         className="w-full rounded-lg bg-neutral-800 py-2 text-sm text-neutral-200 hover:bg-neutral-700">
@@ -81,20 +85,20 @@ export function SimplePanel({ meta, counts, onPlay, playing, onExpert, onAsk }: 
   );
 }
 
-function Tile({ icon, value, label }: { icon: string; value: number; label: string }) {
+function Tile({ icon, value, label }: { icon: React.ReactNode; value: number; label: string }) {
   return (
     <div className="rounded-xl bg-neutral-900 p-3 text-center">
-      <div className="text-2xl">{icon}</div>
+      <div className="flex justify-center">{icon}</div>
       <div className="text-2xl font-bold text-white">{value}</div>
       <div className="text-xs text-neutral-400">{label}</div>
     </div>
   );
 }
 
-function Step({ icon, text }: { icon: string; text: string }) {
+function Step({ icon, text }: { icon: React.ReactNode; text: string }) {
   return (
     <div className="flex items-start gap-2 py-1 text-sm text-neutral-200">
-      <span className="text-lg leading-5">{icon}</span>
+      <span className="mt-0.5 shrink-0">{icon}</span>
       <span>{text}</span>
     </div>
   );
@@ -116,17 +120,19 @@ export function SimpleSite({ site, onDetails }: { site: SiteProps; onDetails: ()
   const usd = site.impact?.value_usd_per_yr.mid;
   const homes = site.impact ? site.impact.homes_powered?.mid ?? homesFromMw(site.impact.power_mw.mid) : null;
   const where = site.nearest_field?.name;
+  const lang = useLang();
   return (
-    <div className="max-w-[260px] text-sm text-neutral-900">
-      <div className="text-base font-semibold">
-        {site.activity_class === "new" ? t("🆕 New gas flare") : site.in_world_bank_catalogue ? t("🔥 Gas flare") : t("❓ Hot spot, not confirmed")}
+    <div dir={lang === "ur" ? "rtl" : "ltr"} className="max-w-[260px] text-sm text-neutral-900">
+      <div className="flex items-center gap-1.5 text-base font-semibold">
+        {site.activity_class === "new" ? <SparkIcon className="h-5 w-5 text-cyan-600" /> : <FlameIcon className={`h-5 w-5 ${site.in_world_bank_catalogue ? "text-orange-600" : "text-neutral-400"}`} />}
+        {site.activity_class === "new" ? t("New gas flare") : site.in_world_bank_catalogue ? t("Gas flare") : t("Hot spot, not confirmed")}
       </div>
       {where && <div className="text-neutral-600">{t("Near {f}", { f: where })}</div>}
       <div className="mt-1">{t("Seen burning on {n} nights this year.", { n: site.nights_detected })}</div>
       {usd != null && usd > 0 ? (
         <div className="mt-2 rounded-lg bg-orange-50 p-2">
           <div className="text-lg font-bold text-orange-700">{t("Rs {n} crore a year", { n: num(Math.max(1, crore(usd))) })}</div>
-          <div className="text-neutral-700">{t("of gas burned here, enough for {h} homes.", { h: num(homes ?? 0) })}</div>
+          <div className="flex items-center gap-1 text-neutral-700"><HomeIcon className="h-4 w-4 shrink-0" />{t("of gas burned here, enough for {h} homes.", { h: num(homes ?? 0) })}</div>
         </div>
       ) : (
         <div className="mt-2 text-neutral-600">

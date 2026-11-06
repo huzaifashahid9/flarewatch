@@ -24,3 +24,12 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Urdu mode: Nastaliq for Urdu letters, Geist for digits and Latin text.
+   Nastaliq is tall, so lines need more room. */
+.font-urdu {
+  font-family: var(--font-geist-sans), var(--font-urdu), sans-serif;
+}
+.font-urdu :is(p, span, div, button, label, h1, h2, h3, a) {
+  line-height: 2;
+}

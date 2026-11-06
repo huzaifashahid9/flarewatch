@@ -26,6 +26,7 @@ function compact(sites: SiteProps[]) {
     usd_per_yr_mid: s.impact ? s.impact.value_usd_per_yr.mid : null,
     co2e_t_per_yr_mid: s.impact ? s.impact.co2e_t_per_yr.mid : null,
     monthly_nights: s.monthly_nights,
+    nearest_field: s.nearest_field ?? null,
   }));
 }
 
@@ -35,7 +36,7 @@ Rules:
 - Volumes exist only for sites that match the World Bank flare catalogue (yearly estimate, -8%/+29% band). Other sites have no volume; never invent one.
 - Sites not in the catalogue are "unconfirmed heat sources" that may be cement, steel or brick plants; say so when relevant.
 - Activity classes come from the share of observed months with detections. Cloudy nights are missing, not zero.
-- The data has no operator or field names. If asked which company or field, say the data cannot tell and suggest checking the concession map.
+- nearest_field is the closest oil or gas field named on OpenStreetMap (within 15 km), not proof of ownership. If asked which company holds a licence, say the data cannot prove it and suggest the DGPC concession map.
 - If the question is not about this data, say what you can help with instead.`;
 
 export async function POST(req: Request) {
@@ -73,7 +74,7 @@ export async function POST(req: Request) {
       output_config: { effort: "low" },
       cache_control: { type: "ephemeral" },
       system: `${INSTRUCTIONS}\n\nDATA:\n${data}`,
-      messages: [{ role: "user", content: question }],
+      messages: [{ role: "user", content: body?.lang === "ur" ? `${question}\n\n(Reply in simple Urdu, in Urdu script. Keep site ids and numbers as they are.)` : question }],
     });
     if (response.stop_reason === "refusal") {
       return Response.json({ error: "The analyst could not answer that question." }, { status: 422 });

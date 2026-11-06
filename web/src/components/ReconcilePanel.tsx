@@ -1,5 +1,7 @@
 "use client";
 
+import { useLang, useT } from "@/i18n";
+
 import { useMemo, useState } from "react";
 import type { SiteProps } from "@/lib-types";
 
@@ -72,36 +74,38 @@ export default function ReconcilePanel({ sites, onClose, onPick }: {
     return { r, site, verdict };
   });
   const flagged = results.filter((x) => x.verdict === "under").length;
+  const t = useT();
+  const lang = useLang();
 
   return (
-    <aside className="absolute bottom-4 right-4 top-16 w-[24rem] max-w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-neutral-950/90 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
+    <aside dir={lang === "ur" ? "rtl" : "ltr"} className="absolute bottom-4 right-4 top-16 w-[24rem] max-w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-neutral-950/90 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
       <div className="flex items-start justify-between">
         <div>
-          <h2 className="text-base font-semibold text-white">Reported vs observed</h2>
+          <h2 className="text-base font-semibold text-white">{t("Reported vs observed")}</h2>
           <p className="text-xs text-neutral-400">
-            Compare an operator&apos;s flare report with what the satellites see. The file stays in your browser; nothing is uploaded.
+            {t("Compare an operator's flare report with what the satellites see. The file stays in your browser; nothing is uploaded.")}
           </p>
         </div>
         <button onClick={onClose} className="rounded px-2 text-lg text-neutral-400 hover:text-white" aria-label="Close">×</button>
       </div>
       <div className="mt-3 flex gap-2 text-xs">
         <label className="cursor-pointer rounded bg-orange-500 px-2.5 py-1.5 font-medium text-black">
-          Upload CSV
+          {t("Upload CSV")}
           <input type="file" accept=".csv,text/csv" className="hidden"
             onChange={(e) => e.target.files?.[0]?.text().then(setText)} />
         </label>
-        <button className="rounded bg-neutral-800 px-2.5 py-1.5" onClick={() => setText(TEMPLATE)}>Try a made-up example</button>
+        <button className="rounded bg-neutral-800 px-2.5 py-1.5" onClick={() => setText(TEMPLATE)}>{t("Try a made-up example")}</button>
         <a className="rounded bg-neutral-800 px-2.5 py-1.5" download="flare_report_template.csv"
-          href={`data:text/csv;charset=utf-8,${encodeURIComponent(TEMPLATE)}`}>Template</a>
+          href={`data:text/csv;charset=utf-8,${encodeURIComponent(TEMPLATE)}`}>{t("Template")}</a>
       </div>
       <textarea value={text} onChange={(e) => setText(e.target.value)} rows={4}
-        placeholder="or paste CSV: name,lat,lon,reported_mmscfd"
+        placeholder={t("or paste CSV: name,lat,lon,reported_mmscfd")} dir="ltr"
         className="mt-2 w-full rounded bg-neutral-900 p-2 font-mono text-xs text-neutral-200" />
-      {errors.map((e) => <p key={e} className="text-xs text-red-400">{e}</p>)}
+      {errors.map((e) => <p key={e} className="text-xs text-red-400">{t(e)}</p>)}
       {results.length > 0 && (
         <>
           <p className="mt-2 text-xs text-neutral-300">
-            {results.length} reported flares checked · <span className="text-red-300">{flagged} below the satellite range</span>
+            {t("{n} reported flares checked", { n: results.length })} · <span className="text-red-300">{t("{n} below the satellite range", { n: flagged })}</span>
           </p>
           <div className="mt-2 space-y-2">
             {results.map(({ r, site, verdict }, i) => (
@@ -109,18 +113,17 @@ export default function ReconcilePanel({ sites, onClose, onPick }: {
                 className="block w-full rounded-lg bg-neutral-900 p-2.5 text-left ring-1 ring-neutral-800 enabled:hover:ring-orange-500/50">
                 <div className="flex items-baseline justify-between gap-2">
                   <span className="font-medium text-white">{r.label}</span>
-                  <span className={`rounded px-1.5 py-0.5 text-[11px] ${VERDICT[verdict].cls}`}>{VERDICT[verdict].text}</span>
+                  <span className={`rounded px-1.5 py-0.5 text-[11px] ${VERDICT[verdict].cls}`}>{t(VERDICT[verdict].text)}</span>
                 </div>
                 <div className="mt-0.5 text-xs text-neutral-400">
-                  Reported {r.reported} MMSCFD
-                  {site?.volume && ` · satellite ${site.volume.mmscfd.low.toFixed(2)} to ${site.volume.mmscfd.high.toFixed(2)} MMSCFD`}
+                  {t("Reported {q} MMSCFD", { q: r.reported })}
+                  {site?.volume && ` · ${t("satellite {a} to {b} MMSCFD", { a: site.volume.mmscfd.low.toFixed(2), b: site.volume.mmscfd.high.toFixed(2) })}`}
                 </div>
               </button>
             ))}
           </div>
           <p className="mt-2 text-[11px] leading-snug text-neutral-500">
-            Satellite ranges come from the World Bank yearly estimate for each flare. A mismatch is a reason to ask
-            questions, not proof: reports may cover a different period or several flares.
+            {t("Satellite ranges come from the World Bank yearly estimate for each flare. A mismatch is a reason to ask questions, not proof: reports may cover a different period or several flares.")}
           </p>
         </>
       )}

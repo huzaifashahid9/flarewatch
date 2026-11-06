@@ -6,7 +6,7 @@ export type Dre = "official" | "measured";
 const compact = (n: number) =>
   n.toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 1 });
 const usd = (n: number) => "$" + compact(n);
-const span = (r: Range, f: (n: number) => string) => `${f(r.low)} to ${f(r.high)}`;
+const span = (r: Range, f: (n: number) => string) => `${f(r.low)}–${f(r.high)}`;
 
 export function co2For(i: Impact, dre: Dre): Range {
   return dre === "official" ? i.co2e_t_per_yr : i.co2e_t_per_yr_at_observed_dre;
@@ -24,7 +24,7 @@ export function DreToggle({ dre, onChange, meta }: { dre: Dre; onChange: (d: Dre
           key={d}
           onClick={() => onChange(d)}
           className={`rounded px-2 py-0.5 ${dre === d ? "bg-orange-500 text-black" : "bg-neutral-800 text-neutral-300"}`}
-          title={d === "official" ? "Regulatory assumption" : "Measured in US fields (Plant et al. 2022)"}
+          title={t(d === "official" ? "Regulatory assumption" : "Measured in US fields (Plant et al. 2022)")}
         >
           {pct(d === "official" ? a?.dre_regulatory : a?.dre_observed)} {t(d)}
         </button>

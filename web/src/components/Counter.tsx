@@ -45,7 +45,7 @@ export function Tracker2030({ meta }: { meta: Meta }) {
     <div className="mt-3 rounded-lg bg-neutral-900 p-2.5">
       <div className="flex items-baseline justify-between">
         <span className="text-xs font-semibold text-white">{tr("Road to zero routine flaring, 2030")}</span>
-        <span className="text-[10px] text-neutral-500">World Bank, all flares</span>
+        <span className="text-[10px] text-neutral-500">{tr("World Bank, all flares")}</span>
       </div>
       <svg viewBox={`0 0 ${w} ${h + 12}`} className="mt-1 w-full" role="img" aria-label="Pakistan flaring trend and path to 2030">
         <polyline points={hist} fill="none" stroke="#ff7a1a" strokeWidth="2" />
@@ -56,10 +56,10 @@ export function Tracker2030({ meta }: { meta: Meta }) {
         ))}
       </svg>
       <p className="text-[11px] text-neutral-300">
-        {last.year}: {last.bcm.toFixed(3)} BCM. To reach zero by 2030 Pakistan must cut about{" "}
-        <b className="text-emerald-300">{(cutPerYear * 1000).toFixed(0)} million m³ a year</b>, every year.
+        {tr("{y}: {b} BCM. To reach zero by 2030 Pakistan must cut about {c} million m³ a year, every year.",
+          { y: last.year, b: last.bcm.toFixed(3), c: (cutPerYear * 1000).toFixed(0) })}
       </p>
-      <p className="text-[10px] text-neutral-500">Pledge: OGDCL signed the OGDC Charter. World Bank totals include all flaring, not only routine.</p>
+      <p className="text-[10px] text-neutral-500">{tr("Pledge: OGDCL signed the OGDC Charter. World Bank totals include all flaring, not only routine.")}</p>
     </div>
   );
 }
