@@ -56,6 +56,7 @@ jobs:
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ALERT_EMAILS: ${{ secrets.ALERT_EMAILS }}
+          ALERT_FROM: ${{ secrets.ALERT_FROM }}
           UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
           UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
           FOLLOW_SECRET: ${{ secrets.FOLLOW_SECRET }}
@@ -66,6 +67,7 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ALERT_EMAILS: ${{ secrets.ALERT_EMAILS }}
+          ALERT_FROM: ${{ secrets.ALERT_FROM }}
         run: python -m flarewatch.briefing ${{ github.event.inputs.briefing == 'true' && '--force' || '' }} || echo "Briefing step failed; data is still committed"
       - name: Commit updated data
         run: |
