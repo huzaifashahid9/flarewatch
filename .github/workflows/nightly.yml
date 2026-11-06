@@ -11,6 +11,9 @@ on:
       backfill_days:
         description: "Also load this many past days from the FIRMS archive (0 = off, 365 = one year)"
         default: "0"
+      briefing:
+        description: "Write the weekly AI briefing now (true/false)"
+        default: "false"
 
 permissions:
   contents: write
@@ -53,7 +56,17 @@ jobs:
         env:
           RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
           ALERT_EMAILS: ${{ secrets.ALERT_EMAILS }}
+          UPSTASH_REDIS_REST_URL: ${{ secrets.UPSTASH_REDIS_REST_URL }}
+          UPSTASH_REDIS_REST_TOKEN: ${{ secrets.UPSTASH_REDIS_REST_TOKEN }}
+          FOLLOW_SECRET: ${{ secrets.FOLLOW_SECRET }}
         run: python -m flarewatch.alerts || echo "Alert step failed; data is still committed"
+      - name: Weekly AI briefing
+        working-directory: pipeline
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY }}
+          ALERT_EMAILS: ${{ secrets.ALERT_EMAILS }}
+        run: python -m flarewatch.briefing ${{ github.event.inputs.briefing == 'true' && '--force' || '' }} || echo "Briefing step failed; data is still committed"
       - name: Commit updated data
         run: |
           git config user.name "github-actions[bot]"
