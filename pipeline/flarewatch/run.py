@@ -46,6 +46,64 @@ def match_baseline(site: clustering.Site,
     return baseline[i] if dist[i] <= BASELINE_MATCH_RADIUS_M else None
 
 
+TREND_LOOKBACK_YEARS = 3
+TREND_STEADY_PCT = 15.0
+
+
+def baseline_history(match: BaselineFlare, baseline: Sequence[BaselineFlare]) -> List[List[float]]:
+    """Every World Bank year for the matched flare, as [year, bcm] pairs.
+    Rows are the same flare when they share its id, or sit within the match
+    radius when the file has no ids."""
+    if match.flare_id:
+        rows = [b for b in baseline if b.flare_id == match.flare_id]
+    else:
+        lats = np.array([b.lat for b in baseline])
+        lons = np.array([b.lon for b in baseline])
+        near = clustering.haversine_m(match.lat, match.lon, lats, lons) <= BASELINE_MATCH_RADIUS_M
+        rows = [b for b, k in zip(baseline, near) if k]
+    by_year: Dict[int, float] = {}
+    for b in rows:
+        by_year[b.year] = by_year.get(b.year, 0.0) + b.bcm
+    return [[y, round(v, 5)] for y, v in sorted(by_year.items())]
+
+
+def trend(history: Sequence[Sequence[float]]) -> Optional[dict]:
+    """Latest World Bank year against the year TREND_LOOKBACK_YEARS earlier
+    (or the earliest year on file). Within ±15% counts as steady, because the
+    World Bank band itself is about -8%/+29%."""
+    if len(history) < 2:
+        return None
+    to_y, to_v = history[-1]
+    target = to_y - TREND_LOOKBACK_YEARS
+    earlier = [h for h in history[:-1] if h[0] <= target] or [history[0]]
+    from_y, from_v = earlier[-1]
+    if from_v <= 0:
+        return None
+    pct = (to_v - from_v) / from_v * 100
+    direction = "steady" if abs(pct) <= TREND_STEADY_PCT else ("improving" if pct < 0 else "worsening")
+    return {"direction": direction, "change_pct": round(pct), "from_year": int(from_y), "to_year": int(to_y)}
+
+
+def province_totals(sites: Sequence[dict]) -> List[dict]:
+    """Sites and yearly gas value by province, worst first."""
+    rows: Dict[str, dict] = {}
+    for s in sites:
+        name = s.get("province") or "Unknown"
+        r = rows.setdefault(name, {"name": name, "sites": 0, "known_flares": 0,
+                                   "mmscfd": 0.0, "value_usd_per_yr": 0.0})
+        r["sites"] += 1
+        if s.get("in_world_bank_catalogue"):
+            r["known_flares"] += 1
+        if s.get("volume"):
+            r["mmscfd"] += s["volume"]["mmscfd"]["mid"]
+        if s.get("impact"):
+            r["value_usd_per_yr"] += s["impact"]["value_usd_per_yr"]["mid"]
+    for r in rows.values():
+        r["mmscfd"] = round(r["mmscfd"], 2)
+        r["value_usd_per_yr"] = round(r["value_usd_per_yr"])
+    return sorted(rows.values(), key=lambda r: (-r["value_usd_per_yr"], -r["sites"]))
+
+
 NEAREST_FIELD_MAX_KM = 15.0
 NEW_SITE_DAYS = 14
 NEW_SITE_MIN_NIGHTS = 5
@@ -124,7 +182,12 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
             "monthly_nights": monthly_nights(s, observed_months),
             "first_seen": s.nights[0],
             "nearest_field": nearest_field(s.lat, s.lon, fields),
+            "province": geo.province(s.lat, s.lon),
         }
+        if match is not None:
+            hist = baseline_history(match, baseline)
+            site["baseline_history"] = hist
+            site["trend"] = trend(hist)
         if vol is not None:
             site["impact"] = impact(vol.bcm_per_yr)
         temps = [d.temperature_k for d in s.detections if d.temperature_k]
@@ -264,6 +327,7 @@ def write_outputs(sites: List[dict], out_dir: Path, sources_used: List[str],
         "observed_months": list(observed_months),
         "national_trend": list(trend),
         "new_sites": new_sites(sites),
+        "provinces": province_totals(sites),
         "assumptions": {
             "lng_price_usd_per_mmbtu": config.LNG_PRICE_USD_PER_MMBTU,
             "lng_price_source": config.LNG_PRICE_SOURCE,

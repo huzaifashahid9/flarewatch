@@ -260,3 +260,39 @@ def test_recent_multi_night_site_is_new():
     sites = run.build_sites(burning + filler, [])
     assert [s["activity_class"] for s in sites] == ["new"]
     assert run.new_sites(sites, today=datetime(2026, 11, 7).date()) == [sites[0]["id"]]
+
+
+def test_province_lookup():
+    from flarewatch import geo
+    assert geo.province(25.39, 68.37) == "Sindh"          # Hyderabad
+    assert geo.province(33.30, 71.18) == "Khyber Pakhtunkhwa"  # Karak
+    assert geo.province(29.55, 67.88) == "Balochistan"     # Sui area
+    assert geo.province(31.52, 74.35) == "Punjab"          # Lahore
+
+
+def test_baseline_trend():
+    from flarewatch import run
+    hist = [[2019, 0.010], [2020, 0.012], [2021, 0.010], [2022, 0.008], [2023, 0.007], [2024, 0.006]]
+    t = run.trend(hist)
+    assert t["direction"] == "improving" and t["from_year"] == 2021 and t["to_year"] == 2024
+    assert t["change_pct"] == -40
+    assert run.trend([[2023, 0.01], [2024, 0.0105]])["direction"] == "steady"
+    assert run.trend([[2023, 0.01], [2024, 0.02]])["direction"] == "worsening"
+    assert run.trend([[2024, 0.01]]) is None
+
+
+def test_baseline_history_and_provinces():
+    from flarewatch import run
+    from flarewatch.sources.base import BaselineFlare
+    base = [BaselineFlare(lat=25.0, lon=68.0, year=y, bcm=0.01 * i, flare_id="F1")
+            for i, y in enumerate([2022, 2023, 2024], start=1)]
+    base.append(BaselineFlare(lat=26.0, lon=69.0, year=2024, bcm=0.5, flare_id="F2"))
+    assert run.baseline_history(base[2], base) == [[2022, 0.01], [2023, 0.02], [2024, 0.03]]
+    sites = [
+        {"province": "Sindh", "in_world_bank_catalogue": True,
+         "volume": {"mmscfd": {"mid": 1.0}}, "impact": {"value_usd_per_yr": {"mid": 100.0}}},
+        {"province": "Punjab", "in_world_bank_catalogue": False, "volume": None},
+        {"province": "Sindh", "in_world_bank_catalogue": False, "volume": None},
+    ]
+    rows = run.province_totals(sites)
+    assert rows[0]["name"] == "Sindh" and rows[0]["sites"] == 2 and rows[0]["value_usd_per_yr"] == 100
