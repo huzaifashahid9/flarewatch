@@ -13,7 +13,7 @@ const SUGGESTED = [
 
 type QA = { q: string; a?: string; error?: string };
 
-export default function AnalystPanel({ onClose }: { onClose: () => void }) {
+export default function AnalystPanel({ onClose, inline }: { onClose?: () => void; inline?: boolean }) {
   const [input, setInput] = useState("");
   const [log, setLog] = useState<QA[]>([]);
   const [busy, setBusy] = useState(false);
@@ -41,13 +41,13 @@ export default function AnalystPanel({ onClose }: { onClose: () => void }) {
   }
 
   return (
-    <aside dir={lang === "ur" ? "rtl" : "ltr"} className="absolute bottom-4 right-4 top-16 flex w-[24rem] max-w-[calc(100%-2rem)] flex-col rounded-xl bg-neutral-950/90 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
+    <aside dir={lang === "ur" ? "rtl" : "ltr"} className={inline ? "flex h-full w-full max-w-3xl flex-col text-sm text-neutral-200" : "absolute bottom-4 right-4 top-16 flex w-[24rem] max-w-[calc(100%-2rem)] flex-col rounded-xl bg-neutral-950/90 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur"}>
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-base font-semibold text-white">{t("AI analyst")}</h2>
           <p className="text-xs text-neutral-400">{t("Ask about the flare data in plain words. Answers use only the public data on this map.")}</p>
         </div>
-        <button onClick={onClose} className="rounded px-2 text-lg text-neutral-400 hover:text-white" aria-label="Close">×</button>
+        {onClose && <button onClick={onClose} className="rounded px-2 text-lg text-neutral-400 hover:text-white" aria-label="Close">×</button>}
       </div>
       <div className="mt-3 flex-1 space-y-3 overflow-y-auto">
         {log.length === 0 && (

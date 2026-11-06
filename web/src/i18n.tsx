@@ -175,11 +175,56 @@ const UR: Record<string, string> = {
   "Azad Kashmir": "آزاد کشمیر",
   "A flare in {p}": "{p} میں ایک فلیئر",
   "1 hot spot, no known flares": "1 گرم مقام، کوئی معلوم فلیئر نہیں",
+  "All flares": "تمام فلیئرز",
+  "All grades": "تمام گریڈ",
+  "All provinces": "تمام صوبے",
+  "Appears after the next nightly update.": "اگلی رات کی اپڈیٹ کے بعد نظر آئے گا۔",
+  "Ask the AI": "اے آئی سے پوچھیں",
+  "Check a report": "رپورٹ جانچیں",
+  "Download CSV": "CSV ڈاؤن لوڈ کریں",
+  "Facts": "حقائق",
+  "First seen {d}": "پہلی بار {d} کو دیکھا گیا",
+  "Flare": "فلیئر",
+  "Flare nights across Pakistan, by month": "پاکستان بھر میں ماہانہ فلیئر راتیں",
+  "Gas value burned per year": "سالانہ جلنے والی گیس کی قیمت",
+  "Grade": "گریڈ",
+  "Homes that gas could power": "اتنے گھروں کو بجلی مل سکتی ہے",
+  "Hot spots watched": "زیرِ نگرانی گرم مقامات",
+  "Known flares only": "صرف معلوم فلیئرز",
+  "Last seen": "آخری بار دیکھا گیا",
+  "Live map": "لائیو نقشہ",
+  "Loading…": "لوڈ ہو رہا ہے…",
+  "Loss per year": "سالانہ نقصان",
+  "MMSCFD": "MMSCFD",
+  "Nights seen": "دیکھی گئی راتیں",
+  "No flare with id {id}.": "{id} نمبر کا کوئی فلیئر نہیں ملا۔",
+  "Open the full flare page": "فلیئر کا مکمل صفحہ کھولیں",
+  "Open the live map": "لائیو نقشہ کھولیں",
+  "Overview": "جائزہ",
+  "Pakistan flaring overview": "پاکستان میں فلیئرنگ کا جائزہ",
+  "Province": "صوبہ",
+  "Report card grades": "رپورٹ کارڈ گریڈ",
+  "Satellite audit of gas flaring in Pakistan. Data: NASA FIRMS, World Bank, OpenStreetMap.": "پاکستان میں گیس فلیئرنگ کا سیٹلائٹ آڈٹ۔ ڈیٹا: ناسا FIRMS، ورلڈ بینک، اوپن اسٹریٹ میپ۔",
+  "Search a field, province or id": "فیلڈ، صوبہ یا نمبر تلاش کریں",
+  "See all flares": "تمام فلیئرز دیکھیں",
+  "Show on map": "نقشے پر دکھائیں",
+  "Sum of nights each site was seen. Cloudy nights are missing, not zero.": "ہر مقام کو دیکھی گئی راتوں کا مجموعہ۔ ابر آلود راتیں غائب ہیں، صفر نہیں۔",
+  "Trend": "رجحان",
+  "Updated {d} PKT from nightly satellite passes.": "رات کے سیٹلائٹ مشاہدات سے {d} کو اپڈیٹ کیا گیا۔",
+  "Worst grade (F) flares": "سب سے خراب گریڈ (F) والے فلیئرز",
+  "{n} shown. Click a row for the full flare page.": "{n} دکھائے گئے۔ مکمل صفحے کے لیے کسی قطار پر کلک کریں۔",
+  "Better": "بہتر",
+  "Worse": "خراب",
+  "Same": "یکساں",
 };
 
 export const LangContext = createContext<Lang>("en");
 
 export const useLang = () => useContext(LangContext);
+
+// The app shell owns the language; pages read it with useLang and change it with useSetLang.
+export const SetLangContext = createContext<(l: Lang) => void>(() => {});
+export const useSetLang = () => useContext(SetLangContext);
 
 export function useT() {
   const lang = useContext(LangContext);

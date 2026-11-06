@@ -105,7 +105,7 @@ export function planOptions(q: number, sell: number, tariff: number, km: number,
   }).sort((a, b) => Number(b.fits) - Number(a.fits) || a.payback - b.payback);
 }
 
-function RecoveryPlanner({ site, meta }: { site: SiteProps; meta: Meta }) {
+export function RecoveryPlanner({ site, meta }: { site: SiteProps; meta: Meta }) {
   const v = site.volume!;
   const lng = meta.assumptions?.lng_price_usd_per_mmbtu ?? 18.4;
   const [sell, setSell] = useState(Math.round(lng * 0.5 * 10) / 10);
@@ -200,6 +200,10 @@ export default function SiteReport({ site, meta, onClose }: { site: SiteProps; m
       <a href={`/report/${encodeURIComponent(site.id)}`} target="_blank" rel="noopener"
         className="mt-3 block rounded-md bg-white py-2 text-center text-sm font-semibold text-black hover:bg-neutral-200">
         {t("Open audit report (PDF)")}
+      </a>
+      <a href={`/flares/${encodeURIComponent(site.id)}`}
+        className="mt-2 block rounded-md bg-neutral-800 py-2 text-center text-sm text-white hover:bg-neutral-700">
+        {t("Open the full flare page")}
       </a>
       {site.volume ? (
         <RecoveryPlanner site={site} meta={meta} />

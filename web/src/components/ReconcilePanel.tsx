@@ -54,8 +54,8 @@ const VERDICT: Record<Verdict, { text: string; cls: string }> = {
   "not-seen": { text: "No flare seen within 2 km", cls: "bg-neutral-700 text-neutral-300" },
 };
 
-export default function ReconcilePanel({ sites, onClose, onPick }: {
-  sites: SiteProps[]; onClose: () => void; onPick: (s: SiteProps) => void;
+export default function ReconcilePanel({ sites, onClose, onPick, inline }: {
+  sites: SiteProps[]; onClose?: () => void; onPick: (s: SiteProps) => void; inline?: boolean;
 }) {
   const [text, setText] = useState("");
   const { rows, errors } = useMemo(() => (text ? parse(text) : { rows: [], errors: [] }), [text]);
@@ -78,7 +78,7 @@ export default function ReconcilePanel({ sites, onClose, onPick }: {
   const lang = useLang();
 
   return (
-    <aside dir={lang === "ur" ? "rtl" : "ltr"} className="absolute bottom-4 right-4 top-16 w-[24rem] max-w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-neutral-950/90 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur">
+    <aside dir={lang === "ur" ? "rtl" : "ltr"} className={inline ? "w-full max-w-3xl text-sm text-neutral-200" : "absolute bottom-4 right-4 top-16 w-[24rem] max-w-[calc(100%-2rem)] overflow-y-auto rounded-xl bg-neutral-950/90 p-4 text-sm text-neutral-200 shadow-xl backdrop-blur"}>
       <div className="flex items-start justify-between">
         <div>
           <h2 className="text-base font-semibold text-white">{t("Reported vs observed")}</h2>
@@ -86,7 +86,7 @@ export default function ReconcilePanel({ sites, onClose, onPick }: {
             {t("Compare an operator's flare report with what the satellites see. The file stays in your browser; nothing is uploaded.")}
           </p>
         </div>
-        <button onClick={onClose} className="rounded px-2 text-lg text-neutral-400 hover:text-white" aria-label="Close">×</button>
+        {onClose && <button onClick={onClose} className="rounded px-2 text-lg text-neutral-400 hover:text-white" aria-label="Close">×</button>}
       </div>
       <div className="mt-3 flex gap-2 text-xs">
         <label className="cursor-pointer rounded bg-orange-500 px-2.5 py-1.5 font-medium text-black">

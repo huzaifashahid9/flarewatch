@@ -7,7 +7,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import type { Meta, SiteProps, Timeline } from "@/lib-types";
 import { indexByDay, TimelapseBar } from "./Timelapse";
 import { MoneyCounter, Tracker2030 } from "./Counter";
-import { LangContext, useLang, useT, type Lang } from "@/i18n";
+import { useLang, useT } from "@/i18n";
 import GoogleFlareMap from "./GoogleFlareMap";
 import SiteReport from "./SiteReport";
 import ReconcilePanel from "./ReconcilePanel";
@@ -42,7 +42,7 @@ export default function FlareMap() {
   const [focus, setFocus] = useState<SiteProps | null>(null);
   const [reconcile, setReconcile] = useState(false);
   const [analyst, setAnalyst] = useState(false);
-  const [lang, setLang] = useState<Lang>("en");
+  const lang = useLang();
   // Simple view for everyone by default; ?view=expert opens the full panel.
   const [mode, setMode] = useState<"simple" | "expert">(() =>
     typeof window !== "undefined" && new URLSearchParams(window.location.search).get("view") === "expert" ? "expert" : "simple");
@@ -114,7 +114,6 @@ export default function FlareMap() {
   };
 
   return (
-    <LangContext.Provider value={lang}>
     <div className={`relative h-full w-full ${lang === "ur" ? "font-urdu" : ""}`}>
       {GOOGLE_KEY ? (
         <GoogleFlareMap
@@ -198,10 +197,6 @@ export default function FlareMap() {
               className="rounded bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 hover:bg-neutral-700">
               <LeftText k={mode === "simple" ? "Expert view" : "Simple view"} />
             </button>
-            <button onClick={() => setLang(lang === "en" ? "ur" : "en")}
-              className="rounded bg-neutral-800 px-2 py-0.5 text-xs text-neutral-200 hover:bg-neutral-700">
-              {lang === "en" ? "اردو" : "English"}
-            </button>
           </div>
         </div>
         <LeftText k="Gas flares across Pakistan, seen from space every night." className="text-neutral-400" />
@@ -282,7 +277,6 @@ export default function FlareMap() {
         <SiteReport site={selected} meta={meta} onClose={() => setSelected(null)} />
       )}
     </div>
-    </LangContext.Provider>
   );
 }
 

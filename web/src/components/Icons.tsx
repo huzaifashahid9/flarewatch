@@ -45,3 +45,29 @@ export const PauseIcon = ({ className }: P) => (
     <path d="M7 5h4v14H7zM13 5h4v14h-4z" />
   </svg>
 );
+export const GridIcon = ({ className }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} aria-hidden>
+    <rect x="4" y="4" width="7" height="7" rx="1" /><rect x="13" y="4" width="7" height="7" rx="1" />
+    <rect x="4" y="13" width="7" height="7" rx="1" /><rect x="13" y="13" width="7" height="7" rx="1" />
+  </svg>
+);
+export const MapIcon = ({ className }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} aria-hidden>
+    <path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2zM9 4v14M15 6v14" />
+  </svg>
+);
+export const ListIcon = ({ className }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} aria-hidden>
+    <path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01" />
+  </svg>
+);
+export const CheckIcon = ({ className }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} aria-hidden>
+    <path d="M9 4h6l1 2h3v14H5V6h3zM9 13l2 2 4-4" />
+  </svg>
+);
+export const DownloadIcon = ({ className }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} aria-hidden>
+    <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
+  </svg>
+);
