@@ -1,0 +1,18 @@
+pattern,operator,note
+kunnar,OGDCL,Kunnar field and LPG plant (Hyderabad)
+nashpa,OGDCL,Nashpa field (Karak)
+qadirpur,OGDCL,Qadirpur gas field (Ghotki)
+uch gas,OGDCL,Uch gas field (Dera Murad Jamali)
+fimkassar|fimkasar,OGDCL,Fimkassar oil field (Chakwal)
+tando alam,OGDCL,Tando Alam oil complex (Hyderabad)
+sui gas field|sui gas fields,PPL,Sui gas field (Dera Bugti)
+adhi,PPL,Adhi oil and gas field (Rawalpindi)
+pindori,POL,Pindori oil field (Chakwal)
+makori,MOL Pakistan,Makori East field (TAL block)
+bhit,Prime Energy (formerly Eni Pakistan),Bhit gas field (Jamshoro)
+uepl,United Energy Pakistan,named in OpenStreetMap
+attock oil refinery|attock refinery|pni -attock,Attock Refinery Ltd,refinery
+parco,PARCO,refinery
+pakistan refinery limited,Pakistan Refinery Ltd,refinery
+bosicor,Cnergyico (formerly Byco),refinery
+transasia refinery,TransAsia Refinery,refinery

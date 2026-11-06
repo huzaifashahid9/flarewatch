@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
@@ -109,7 +110,24 @@ NEW_SITE_DAYS = 14
 NEW_SITE_MIN_NIGHTS = 5
 
 
-def nearest_field(lat: float, lon: float, fields: Sequence[dict]) -> Optional[dict]:
+def load_operators(path: Path) -> List[Tuple[re.Pattern, str]]:
+    """Field name pattern -> operator company, from public sources (company
+    reports and press). This names the operator of the nearest field; it is
+    not the official licence-block boundary."""
+    path = Path(path)
+    if not path.exists():
+        return []
+    import csv
+    with path.open(newline="") as fh:
+        return [(re.compile(r["pattern"], re.IGNORECASE), r["operator"]) for r in csv.DictReader(fh)]
+
+
+def operator_for(name: str, operators: Sequence[Tuple[re.Pattern, str]]) -> Optional[str]:
+    return next((op for pat, op in operators if pat.search(name)), None)
+
+
+def nearest_field(lat: float, lon: float, fields: Sequence[dict],
+                  operators: Sequence[Tuple[re.Pattern, str]] = ()) -> Optional[dict]:
     if not fields:
         return None
     d = clustering.haversine_m(lat, lon, np.array([f["lat"] for f in fields]),
@@ -118,13 +136,15 @@ def nearest_field(lat: float, lon: float, fields: Sequence[dict]) -> Optional[di
     if d[i] > NEAREST_FIELD_MAX_KM * 1000:
         return None
     f = fields[i]
-    return {"name": f["name"], "operator": f.get("operator"), "km": round(float(d[i]) / 1000, 1)}
+    operator = f.get("operator") or operator_for(f["name"], operators)
+    return {"name": f["name"], "operator": operator, "km": round(float(d[i]) / 1000, 1)}
 
 
 def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlare],
                 kilns: Sequence[Tuple[float, float]] = (),
                 frp_history: Optional[Dict[str, float]] = None,
-                public: bool = True, fields: Sequence[dict] = ()) -> List[dict]:
+                public: bool = True, fields: Sequence[dict] = (),
+                operators: Sequence[Tuple[re.Pattern, str]] = ()) -> List[dict]:
     """public=True never uses VIIRS Nightfire values. The VNF academic
     licence forbids public machine-readable redistribution (1b) and public
     current-year volume estimates (1e), so Nightfire-based numbers go only to
@@ -181,7 +201,7 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
             # meta.observed_months, for the activity chart.
             "monthly_nights": monthly_nights(s, observed_months),
             "first_seen": s.nights[0],
-            "nearest_field": nearest_field(s.lat, s.lon, fields),
+            "nearest_field": nearest_field(s.lat, s.lon, fields, operators),
             "province": geo.province(s.lat, s.lon),
         }
         if match is not None:
@@ -352,6 +372,7 @@ def main(argv: Optional[List[str]] = None) -> int:
                    help="Also fetch this many past days from the FIRMS archive")
     p.add_argument("--private-out", type=Path, default=Path("../data/private"))
     p.add_argument("--osm-cache", type=Path, default=Path("../data/reference/osm_oil_gas.json"))
+    p.add_argument("--operators", type=Path, default=Path("../data/reference/field_operators.csv"))
     args = p.parse_args(argv)
 
     notes: List[str] = []
@@ -374,10 +395,12 @@ def main(argv: Optional[List[str]] = None) -> int:
     except SourceNotConfigured as exc:
         baseline = []
         notes.append(str(exc))
-    fields = osm.load_or_fetch(args.osm_cache)
+    # Older caches predate the name filter, so filter again here.
+    fields = [f for f in osm.load_or_fetch(args.osm_cache) if osm.is_flare_candidate(f["name"])]
+    operators = load_operators(args.operators)
     if fields:
         used.append("openstreetmap")
-    sites = build_sites(detections, baseline, public=True, fields=fields)
+    sites = build_sites(detections, baseline, public=True, fields=fields, operators=operators)
     months = sorted({d.observed_at.strftime("%Y-%m") for d in detections})
     write_outputs(sites, args.out, used, notes, months, national_trend(baseline))
     write_timeline(detections, args.out)

@@ -8,6 +8,7 @@ hint, not a legal licence-block match. Attribution: (c) OpenStreetMap contributo
 from __future__ import annotations
 
 import json
+import re
 import time
 from pathlib import Path
 from typing import List, Optional
@@ -28,6 +29,18 @@ out center tags;
 """
 
 
+# The name searches also catch cooking-oil mills, petrol pumps, depots and
+# lube shops. None of these flare gas, so they are dropped.
+NOT_A_FLARE_SITE = re.compile(
+    r"mill|ginning|cotton|agro|petrol pump|lubricant|depot|depo\b|terminal|autos|spare|trader|chakki|"
+    r"colony|housing|road|runway|boiler|power station|power plant|\bmil\b|filling|custody|linde|oil change|talron|kausar|haroon",
+    re.IGNORECASE)
+
+
+def is_flare_candidate(name: str) -> bool:
+    return not NOT_A_FLARE_SITE.search(name)
+
+
 def parse(payload: dict) -> List[dict]:
     out, seen = [], set()
     for el in payload.get("elements", []):
@@ -35,7 +48,7 @@ def parse(payload: dict) -> List[dict]:
         name = tags.get("name:en") or tags.get("name")
         lat = el.get("lat", el.get("center", {}).get("lat"))
         lon = el.get("lon", el.get("center", {}).get("lon"))
-        if not name or lat is None or lon is None:
+        if not name or lat is None or lon is None or not is_flare_candidate(name):
             continue
         key = (name, round(lat, 2), round(lon, 2))
         if key in seen:

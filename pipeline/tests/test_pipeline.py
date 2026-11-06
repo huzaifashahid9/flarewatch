@@ -296,3 +296,24 @@ def test_baseline_history_and_provinces():
     ]
     rows = run.province_totals(sites)
     assert rows[0]["name"] == "Sindh" and rows[0]["sites"] == 2 and rows[0]["value_usd_per_yr"] == 100
+
+
+def test_osm_name_filter_drops_non_flare_sites():
+    from flarewatch.sources import osm
+    assert osm.is_flare_candidate("Qadirpur Gas Plant")
+    assert osm.is_flare_candidate("Attock Refinery")
+    for bad in ("Bajwa Cotton Ginning & Oil Mills", "PSO Oil Depot", "Irfan Oil Depo", "Zam Zam Petrol Pump",
+                "Gold Star Lubricants", "Attock Refinery Road"):
+        assert not osm.is_flare_candidate(bad), bad
+
+
+def test_field_operator_lookup():
+    from pathlib import Path
+    from flarewatch import run
+    ops = run.load_operators(Path(__file__).parents[2] / "data" / "reference" / "field_operators.csv")
+    assert run.operator_for("Kunnar LPG Plant & Oil Field", ops) == "OGDCL"
+    assert run.operator_for("Makori East 02", ops) == "MOL Pakistan"
+    assert run.operator_for("Some Unknown Field", ops) is None
+    fields = [{"name": "Qadirpur Gas Plant", "lat": 28.0, "lon": 69.0, "operator": None}]
+    nf = run.nearest_field(28.01, 69.0, fields, ops)
+    assert nf["operator"] == "OGDCL" and nf["km"] == 1.1
