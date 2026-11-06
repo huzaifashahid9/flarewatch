@@ -20,7 +20,8 @@ import numpy as np
 
 from . import archive, geo
 from . import cluster as clustering
-from . import config, estimate
+from . import config, estimate, population as worldpop
+from .grade import grade as grade_of
 from .sources import firms, nightfire, osm, worldbank
 from .sources.base import BaselineFlare, Detection, SourceNotConfigured
 
@@ -45,6 +46,22 @@ def match_baseline(site: clustering.Site,
     dist = clustering.haversine_m(site.lat, site.lon, lats, lons)
     i = int(np.argmin(dist))
     return baseline[i] if dist[i] <= BASELINE_MATCH_RADIUS_M else None
+
+
+DAY_MATCH_RADIUS_M = 1000.0
+STEADY_MIN_NIGHTS = 20
+
+
+def fire_pattern(nights: int, days: int) -> str:
+    """Night vs day check. Crop and rubbish fires burn in the afternoon and die
+    out, so satellites see them mostly by day. A gas flare burns round the
+    clock and is seen on many nights. Industry also burns at night, so this
+    separates fires from flares and plants, not flares from plants."""
+    if days > 2 * nights:
+        return "mostly daytime"
+    if nights >= STEADY_MIN_NIGHTS:
+        return "day and night"
+    return "too little data"
 
 
 TREND_LOOKBACK_YEARS = 3
@@ -144,7 +161,9 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
                 kilns: Sequence[Tuple[float, float]] = (),
                 frp_history: Optional[Dict[str, float]] = None,
                 public: bool = True, fields: Sequence[dict] = (),
-                operators: Sequence[Tuple[re.Pattern, str]] = ()) -> List[dict]:
+                operators: Sequence[Tuple[re.Pattern, str]] = (),
+                day_detections: Sequence[Detection] = (),
+                population: Optional[worldpop.PopulationGrid] = None) -> List[dict]:
     """public=True never uses VIIRS Nightfire values. The VNF academic
     licence forbids public machine-readable redistribution (1b) and public
     current-year volume estimates (1e), so Nightfire-based numbers go only to
@@ -156,6 +175,9 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
     still_cutoff = (latest - timedelta(days=3)).isoformat()
     observed_months = sorted({d.observed_at.strftime("%Y-%m") for d in detections})
     base = list(latest_baseline(baseline).values())
+    day_lat = np.array([d.lat for d in day_detections])
+    day_lon = np.array([d.lon for d in day_detections])
+    day_date = np.array([d.observed_at.date().isoformat() for d in day_detections])
     out = []
     for s in sites:
         if clustering.near_any(s.lat, s.lon, kilns, config.KILN_EXCLUSION_RADIUS_M):
@@ -204,6 +226,13 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
             "nearest_field": nearest_field(s.lat, s.lon, fields, operators),
             "province": geo.province(s.lat, s.lon),
         }
+        if len(day_detections):
+            near = clustering.haversine_m(s.lat, s.lon, day_lat, day_lon) <= DAY_MATCH_RADIUS_M
+            days_seen = len(set(day_date[near]))
+            site["days_seen"] = days_seen
+            site["fire_pattern"] = fire_pattern(len(s.nights), days_seen)
+        if population is not None:
+            site["people_within_5km"] = population.people_within(s.lat, s.lon, 5.0)
         if match is not None:
             hist = baseline_history(match, baseline)
             site["baseline_history"] = hist
@@ -372,6 +401,8 @@ def main(argv: Optional[List[str]] = None) -> int:
                    help="Also fetch this many past days from the FIRMS archive")
     p.add_argument("--private-out", type=Path, default=Path("../data/private"))
     p.add_argument("--osm-cache", type=Path, default=Path("../data/reference/osm_oil_gas.json"))
+    p.add_argument("--day-archive", type=Path, default=Path("../data/archive/day_detections.csv"))
+    p.add_argument("--worldpop", type=Path, default=Path("../data/reference/worldpop_pak_2020_1km.tif"))
     p.add_argument("--operators", type=Path, default=Path("../data/reference/field_operators.csv"))
     args = p.parse_args(argv)
 
@@ -389,6 +420,22 @@ def main(argv: Optional[List[str]] = None) -> int:
     detections = archive.merge(public_only(geo.filter_detections(archive.load(args.archive))),
                                new, args.window_days)
     archive.save(args.archive, detections)
+    # Day passes, kept apart from the night archive, for the night-vs-day check.
+    try:
+        new_day = firms.fetch(key, days=args.days, day_only=True)
+        if args.backfill_days > 0:
+            today = datetime.now(timezone.utc).date()
+            new_day += firms.fetch_range(key, today - timedelta(days=args.backfill_days),
+                                         today - timedelta(days=1), day_only=True)
+        day_detections = archive.merge(archive.load(args.day_archive),
+                                       geo.filter_detections(new_day), args.window_days)
+        archive.save(args.day_archive, day_detections)
+    except Exception as exc:  # the night pipeline must not fail because of this
+        notes.append(f"Day passes not updated: {exc}")
+        day_detections = archive.load(args.day_archive)
+    pop = worldpop.load(args.worldpop)
+    if pop is not None:
+        used.append("worldpop")
     try:
         baseline = worldbank.load(args.worldbank)
         used.append("world-bank-per-flare")
@@ -400,7 +447,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     operators = load_operators(args.operators)
     if fields:
         used.append("openstreetmap")
-    sites = build_sites(detections, baseline, public=True, fields=fields, operators=operators)
+    sites = build_sites(detections, baseline, public=True, fields=fields, operators=operators,
+                        day_detections=day_detections, population=pop)
+    for s in sites:
+        s["grade"] = grade_of(s)
     months = sorted({d.observed_at.strftime("%Y-%m") for d in detections})
     write_outputs(sites, args.out, used, notes, months, national_trend(baseline))
     write_timeline(detections, args.out)

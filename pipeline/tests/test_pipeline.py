@@ -317,3 +317,58 @@ def test_field_operator_lookup():
     fields = [{"name": "Qadirpur Gas Plant", "lat": 28.0, "lon": 69.0, "operator": None}]
     nf = run.nearest_field(28.01, 69.0, fields, ops)
     assert nf["operator"] == "OGDCL" and nf["km"] == 1.1
+
+
+def test_parse_day_only_keeps_day_passes():
+    day = firms.parse_csv(FIXTURE.read_text(), "VIIRS_NOAA20_NRT", day_only=True)
+    raw = pd.read_csv(FIXTURE)
+    assert len(day) == int((raw["daynight"].str.strip() == "D").sum())
+
+
+def test_fire_pattern():
+    assert run.fire_pattern(nights=3, days=20) == "mostly daytime"
+    assert run.fire_pattern(nights=200, days=60) == "day and night"
+    assert run.fire_pattern(nights=5, days=4) == "too little data"
+
+
+def test_population_within_radius():
+    import numpy as np
+    from flarewatch.population import PopulationGrid
+    # 0.01 degree cells (about 1.1 km), 100 people per cell, centred on 30N 70E.
+    grid = PopulationGrid(np.full((200, 200), 100.0), west=69.0, north=31.0, cell_deg=0.01)
+    n = grid.people_within(30.0, 70.0, 5.0)
+    # A 5 km circle is about 78.5 km2; cells are about 1.11 x 0.96 km.
+    assert 6000 < n < 8500
+    assert grid.people_within(10.0, 10.0, 5.0) == 0
+
+
+def test_grade_matches_web_rules():
+    from flarewatch.grade import grade
+    site = {"volume": {"mmscfd": {"mid": 0.5}}, "active_share": 0.9}
+    assert grade(site) == "F"
+    assert grade({**site, "trend": {"direction": "improving"}}) == "D"
+    assert grade({"volume": {"mmscfd": {"mid": 0.01}}, "active_share": 0.2}) == "A"
+    assert grade({"volume": None}) is None
+
+
+def test_briefing_facts_and_schedule():
+    from datetime import datetime, timedelta, timezone
+
+    from flarewatch import briefing
+
+    site = lambda i, g, usd: {"id": i, "lat": 27.0, "lon": 69.0, "grade": g, "province": "Sindh",
+                              "nearest_field": {"name": f"Field {i}"}, "monthly_nights": [3, 4],
+                              "impact": {"value_usd_per_yr": {"mid": usd}}}
+    sites = {"a": site("a", "D", 2e6), "b": site("b", "B", 1e6)}
+    meta = {"observed_months": ["2026-09", "2026-10"], "totals": {"value_usd_per_yr": {"mid": 3e6}},
+            "provinces": [{"name": "Sindh", "value_usd_per_yr": 3e6}]}
+    f = briefing.facts(sites, meta, {"at": "2026-10-30T00:00:00+00:00", "sites": {"a": "C"}})
+    assert [n["place"] for n in f["new_sites_since_last_briefing"]] == ["Field b"]
+    assert f["grade_changes"] == [{"flare": "Field a", "from": "C", "to": "D"}]
+    assert f["biggest_flares"][0]["loss_rs_crore"] == 56
+    assert f["flare_nights_by_month"] == {"2026-09": 6, "2026-10": 8}
+    assert f["provinces_rs_crore"] == {"Sindh": 84}
+    now = datetime(2026, 11, 6, tzinfo=timezone.utc)
+    assert briefing.due({}, now)
+    assert not briefing.due({"at": (now - timedelta(days=2)).isoformat()}, now)
+    assert briefing.due({"at": (now - timedelta(days=7)).isoformat()}, now)

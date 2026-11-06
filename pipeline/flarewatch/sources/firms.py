@@ -30,12 +30,17 @@ def build_url(map_key: str, source: str, bbox=config.PAKISTAN_BBOX,
     return url
 
 
-def parse_csv(text: str, source: str, night_only: bool = True) -> List[Detection]:
-    """Turn a FIRMS VIIRS CSV into Detection objects."""
+def parse_csv(text: str, source: str, night_only: bool = True, day_only: bool = False) -> List[Detection]:
+    """Turn a FIRMS VIIRS CSV into Detection objects. Night passes by default;
+    day_only=True keeps only day passes, for the night-vs-day check."""
     rows = csv.DictReader(io.StringIO(text))
     out: List[Detection] = []
     for row in rows:
-        if night_only and row.get("daynight", "N").strip().upper() != "N":
+        dn = row.get("daynight", "N").strip().upper()
+        if day_only:
+            if dn != "D":
+                continue
+        elif night_only and dn != "N":
             continue
         hhmm = row["acq_time"].strip().zfill(4)
         observed = datetime.strptime(
@@ -58,7 +63,7 @@ def parse_csv(text: str, source: str, night_only: bool = True) -> List[Detection
 
 def fetch_range(map_key: Optional[str], start: date, end: date,
                 sources: Iterable[str] = config.FIRMS_ARCHIVE_SOURCES + config.FIRMS_SOURCES,
-                session: Optional[requests.Session] = None) -> List[Detection]:
+                session: Optional[requests.Session] = None, day_only: bool = False) -> List[Detection]:
     """Backfill [start, end] in 5-day chunks. SP covers older dates and NRT the
     recent gap; duplicates are removed later by archive.merge. A chunk that a
     source does not cover just returns no rows."""
@@ -70,7 +75,7 @@ def fetch_range(map_key: Optional[str], start: date, end: date,
     while day <= end:
         span = min(5, (end - day).days + 1)
         for source in sources:
-            out.extend(fetch(map_key, days=span, on=day, sources=[source], session=http))
+            out.extend(fetch(map_key, days=span, on=day, sources=[source], session=http, day_only=day_only))
         day += timedelta(days=span)
     return out
 
@@ -78,7 +83,7 @@ def fetch_range(map_key: Optional[str], start: date, end: date,
 def fetch(map_key: Optional[str], days: int = 1, on: Optional[date] = None,
           sources: Iterable[str] = config.FIRMS_SOURCES,
           session: Optional[requests.Session] = None,
-          retries: int = 4) -> List[Detection]:
+          retries: int = 4, day_only: bool = False) -> List[Detection]:
     """Download and parse detections for Pakistan from every FIRMS source."""
     if not map_key:
         raise SourceNotConfigured("Set FIRMS_MAP_KEY to fetch NASA FIRMS data")
@@ -92,7 +97,7 @@ def fetch(map_key: Optional[str], days: int = 1, on: Optional[date] = None,
                 text = resp.text
                 if text.lstrip().lower().startswith("invalid"):
                     raise SourceNotConfigured(f"FIRMS rejected the key: {text[:80]}")
-                detections.extend(parse_csv(text, source))
+                detections.extend(parse_csv(text, source, day_only=day_only))
                 break
             if resp.status_code in (429, 500, 502, 503, 504) and attempt < retries:
                 time.sleep(2 ** (attempt + 1))
