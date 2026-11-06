@@ -1,4 +1,4 @@
-lat,lon,observed_at,satellite,source,frp_mw,rh75_mw,temperature_k,confidence
+lat,lon,observed_at,satellite,source,frp_mw,rh_mw,temperature_k,confidence
 33.68851,72.71124,2025-11-06 20:37:00+00:00,N20,firms,1.29,,,n
 33.70274,71.54425,2025-11-06 20:37:00+00:00,N20,firms,0.57,,,n
 33.80249,72.09509,2025-11-06 20:37:00+00:00,N20,firms,0.93,,,n

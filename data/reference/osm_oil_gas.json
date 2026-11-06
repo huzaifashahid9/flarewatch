@@ -1,0 +1,674 @@
+[
+{
+"name": "Attock Oil Refinery",
+"lat": 33.55175,
+"lon": 73.0739,
+"operator": null,
+"kind": null
+},
+{
+"name": "FIMKASAR Oil Fields",
+"lat": 33.07861,
+"lon": 72.94579,
+"operator": null,
+"kind": null
+},
+{
+"name": "Adhi Oilfield",
+"lat": 33.14262,
+"lon": 73.16021,
+"operator": null,
+"kind": null
+},
+{
+"name": "PNI -Attock Refinery",
+"lat": 31.52629,
+"lon": 74.32254,
+"operator": null,
+"kind": null
+},
+{
+"name": "Faisalabad Oil Refinery",
+"lat": 24.83664,
+"lon": 67.29407,
+"operator": null,
+"kind": null
+},
+{
+"name": "Sawan Gas Field",
+"lat": 26.98437,
+"lon": 68.90101,
+"operator": null,
+"kind": null
+},
+{
+"name": "Bakri Enterprises Oil Refinery, Port Qasim",
+"lat": 24.82759,
+"lon": 67.3006,
+"operator": null,
+"kind": null
+},
+{
+"name": "Bosicor Refinery, Kemari",
+"lat": 24.81723,
+"lon": 66.98439,
+"operator": null,
+"kind": "storage_tank"
+},
+{
+"name": "Adhi Refinery",
+"lat": 33.14218,
+"lon": 73.16362,
+"operator": null,
+"kind": "works"
+},
+{
+"name": "Kiran Gas Plant",
+"lat": 25.07691,
+"lon": 66.83345,
+"operator": null,
+"kind": "wastewater_plant"
+},
+{
+"name": "United Gas Plant",
+"lat": 32.83335,
+"lon": 74.0357,
+"operator": null,
+"kind": "wastewater_plant"
+},
+{
+"name": "Irfan Oil Depo",
+"lat": 24.8919,
+"lon": 67.05447,
+"operator": null,
+"kind": "petroleum_well"
+},
+{
+"name": "Al Madina Oil Depot And Chakki",
+"lat": 24.91321,
+"lon": 67.06175,
+"operator": null,
+"kind": "petroleum_well"
+},
+{
+"name": "Javed Oil Traders",
+"lat": 24.8849,
+"lon": 67.14408,
+"operator": null,
+"kind": "petroleum_well"
+},
+{
+"name": "Super Japan Oil Change And Spare Parts",
+"lat": 24.92714,
+"lon": 67.0297,
+"operator": null,
+"kind": "petroleum_well"
+},
+{
+"name": "Baba Fareed Autos and Oil Service",
+"lat": 24.94626,
+"lon": 67.0674,
+"operator": null,
+"kind": "petroleum_well"
+},
+{
+"name": "Gold Star Lubricants",
+"lat": 24.9452,
+"lon": 67.06814,
+"operator": null,
+"kind": "petroleum_well"
+},
+{
+"name": "Muhammad idrees Talron",
+"lat": 24.92763,
+"lon": 67.08861,
+"operator": null,
+"kind": "petroleum_well"
+},
+{
+"name": "New Gold Star Lubricants",
+"lat": 24.9384,
+"lon": 67.10147,
+"operator": null,
+"kind": "petroleum_well"
+},
+{
+"name": "Pakistan Oilfield Limited Colony",
+"lat": 32.95237,
+"lon": 72.67082,
+"operator": null,
+"kind": null
+},
+{
+"name": "Nashpa-3",
+"lat": 33.2541,
+"lon": 71.30143,
+"operator": "OGDCL",
+"kind": "petroleum_well"
+},
+{
+"name": "Nashpa-2",
+"lat": 33.25617,
+"lon": 71.29562,
+"operator": "OGDCL",
+"kind": "petroleum_well"
+},
+{
+"name": "Nashpa-1",
+"lat": 33.2569,
+"lon": 71.30866,
+"operator": "OGDCL",
+"kind": "petroleum_well"
+},
+{
+"name": "Nashpa-4",
+"lat": 33.24994,
+"lon": 71.29152,
+"operator": "OGDCL",
+"kind": "petroleum_well"
+},
+{
+"name": "Shawa Totaki Well",
+"lat": 33.23355,
+"lon": 71.06459,
+"operator": "OGDCL",
+"kind": "petroleum_well"
+},
+{
+"name": "Nashpa 4",
+"lat": 33.24661,
+"lon": 71.3004,
+"operator": "OGDCL",
+"kind": "petroleum_well"
+},
+{
+"name": "Makori East",
+"lat": 33.2637,
+"lon": 71.35988,
+"operator": "MOL Pakistan Oil & Gas Co. B.V.",
+"kind": "petroleum_well"
+},
+{
+"name": "Makori East",
+"lat": 33.26514,
+"lon": 71.3445,
+"operator": "MOL Pakistan Oil & Gas Co. B.V.",
+"kind": "petroleum_well"
+},
+{
+"name": "Makori East 05",
+"lat": 33.27001,
+"lon": 71.33944,
+"operator": "MOL Pakistan Oil & Gas Co. B.V.",
+"kind": "petroleum_well"
+},
+{
+"name": "Makori East 02",
+"lat": 33.26896,
+"lon": 71.32717,
+"operator": "MOL Pakistan Oil & Gas Co. B.V.",
+"kind": "petroleum_well"
+},
+{
+"name": "Makori East 06",
+"lat": 33.26323,
+"lon": 71.32578,
+"operator": "MOL Pakistan Oil & Gas Co. B.V.",
+"kind": "petroleum_well"
+},
+{
+"name": "Makori East",
+"lat": 33.26032,
+"lon": 71.335,
+"operator": "MOL Pakistan Oil & Gas Co. B.V.",
+"kind": "petroleum_well"
+},
+{
+"name": "Makori East",
+"lat": 33.24964,
+"lon": 71.32244,
+"operator": "MOL Pakistan Oil & Gas Co. B.V.",
+"kind": "petroleum_well"
+},
+{
+"name": "Nashpa",
+"lat": 33.25648,
+"lon": 71.31652,
+"operator": "OGDCL",
+"kind": "petroleum_well"
+},
+{
+"name": "Makori East 04",
+"lat": 33.2624,
+"lon": 71.32335,
+"operator": "MOL Pakistan Oil & Gas Co. B.V.",
+"kind": "petroleum_well"
+},
+{
+"name": "Makori Old Oil Plant",
+"lat": 33.29328,
+"lon": 71.22245,
+"operator": "POL",
+"kind": "petroleum_well"
+},
+{
+"name": "Sui Gas",
+"lat": 31.46559,
+"lon": 73.0779,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Attock Refinery Road",
+"lat": 33.55261,
+"lon": 73.07748,
+"operator": null,
+"kind": null
+},
+{
+"name": "Attock Oil Refinery",
+"lat": 33.54772,
+"lon": 73.07662,
+"operator": null,
+"kind": "refinery"
+},
+{
+"name": "Attock Refinery",
+"lat": 33.55464,
+"lon": 73.07475,
+"operator": null,
+"kind": null
+},
+{
+"name": "Attock Refinery Road",
+"lat": 33.55501,
+"lon": 73.07817,
+"operator": null,
+"kind": null
+},
+{
+"name": "PARCO refinery",
+"lat": 30.16985,
+"lon": 70.93683,
+"operator": null,
+"kind": "refinery"
+},
+{
+"name": "SITE Gas Turbine Power Station",
+"lat": 24.91294,
+"lon": 66.99059,
+"operator": "K-Electric",
+"kind": "industrial"
+},
+{
+"name": "Gul Ahmed Energy Oil Power Plant",
+"lat": 24.84999,
+"lon": 67.14648,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Korangi Town Gas Engine Power Station",
+"lat": 24.84854,
+"lon": 67.14554,
+"operator": "K-Electric",
+"kind": "industrial"
+},
+{
+"name": "WAPDA Multan Gas Power Station",
+"lat": 30.20597,
+"lon": 71.55775,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Pakistan Refinery Limited",
+"lat": 24.80183,
+"lon": 67.11587,
+"operator": "Chevron",
+"kind": "refinery"
+},
+{
+"name": "Boiler Room",
+"lat": 34.00143,
+"lon": 71.4849,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "PSO Oil Depot",
+"lat": 30.17364,
+"lon": 70.97522,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Runway: Qadirpur Gas Plant",
+"lat": 28.05062,
+"lon": 69.36061,
+"operator": null,
+"kind": null
+},
+{
+"name": "Nashpa Refinery",
+"lat": 33.26944,
+"lon": 71.30666,
+"operator": null,
+"kind": "works"
+},
+{
+"name": "Kunnar LPG Plant & Oil Field",
+"lat": 25.38454,
+"lon": 68.58149,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Linde Gas Company",
+"lat": 31.57943,
+"lon": 74.37963,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Gull Gas Plant",
+"lat": 34.02098,
+"lon": 71.70673,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Wyne Gas Plant",
+"lat": 33.61625,
+"lon": 72.86461,
+"operator": null,
+"kind": "oil"
+},
+{
+"name": "Kotal Gas Plant",
+"lat": 33.55585,
+"lon": 71.47155,
+"operator": null,
+"kind": "gas"
+},
+{
+"name": "Alpha Gas Plant",
+"lat": 33.89189,
+"lon": 72.29491,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Shalimar Plant",
+"lat": 34.03159,
+"lon": 71.54438,
+"operator": null,
+"kind": "gas"
+},
+{
+"name": "Zam Zam Petrol Pump",
+"lat": 33.46688,
+"lon": 71.38332,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Aga Gas Plant",
+"lat": 24.85021,
+"lon": 67.31411,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Iqra Gas Plant",
+"lat": 31.99819,
+"lon": 74.21983,
+"operator": null,
+"kind": "gas"
+},
+{
+"name": "Haroon Oils Limited",
+"lat": 24.85027,
+"lon": 66.98266,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Refinery Housing complex",
+"lat": 30.17149,
+"lon": 70.95006,
+"operator": null,
+"kind": null
+},
+{
+"name": "Pak Agro Oil Industries",
+"lat": 24.84999,
+"lon": 67.31669,
+"operator": null,
+"kind": "oil"
+},
+{
+"name": "Bajwa Cotton Ginning & Oil Mills",
+"lat": 29.48649,
+"lon": 73.04591,
+"operator": "SAS Organic Farms",
+"kind": "works"
+},
+{
+"name": "SSGC Gas Plant",
+"lat": 25.44811,
+"lon": 68.33678,
+"operator": "SSGC",
+"kind": "works"
+},
+{
+"name": "Qadirpur Gas Plant",
+"lat": 28.04945,
+"lon": 69.36413,
+"operator": null,
+"kind": "gas"
+},
+{
+"name": "Uch Gas Field",
+"lat": 28.60963,
+"lon": 68.63045,
+"operator": null,
+"kind": "gas"
+},
+{
+"name": "Tando Alam Oil Complex",
+"lat": 25.30576,
+"lon": 68.50003,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Tangri Oil Field",
+"lat": 25.18776,
+"lon": 68.59336,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "PSO Oil Depot",
+"lat": 28.03125,
+"lon": 68.83355,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Shell Oil Depot",
+"lat": 28.0331,
+"lon": 68.83597,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Chevron Oil Depot",
+"lat": 28.03455,
+"lon": 68.83833,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Above Ground Installation",
+"lat": 28.5807,
+"lon": 68.17552,
+"operator": null,
+"kind": "gas"
+},
+{
+"name": "Anmol Cotton Industries and Oil Mills",
+"lat": 25.58024,
+"lon": 68.44167,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Sui Gas Fields",
+"lat": 28.63205,
+"lon": 69.1931,
+"operator": null,
+"kind": "natural_gas"
+},
+{
+"name": "Bhit Gas Field",
+"lat": 26.16784,
+"lon": 67.48573,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Kausar Gas",
+"lat": 25.57222,
+"lon": 68.53196,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Salamat-1 Remote Gas Field (UEPL)",
+"lat": 25.7508,
+"lon": 68.5109,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Fongas Filling Plant PRL Karachi",
+"lat": 24.8051,
+"lon": 67.12256,
+"operator": null,
+"kind": "natural_gas"
+},
+{
+"name": "Attock Petroleum Ltd-Port Qasim Terminal",
+"lat": 24.81955,
+"lon": 67.29977,
+"operator": null,
+"kind": "petroleum_terminal"
+},
+{
+"name": "Be Energy Ltd. Oil Terminal 2",
+"lat": 24.82017,
+"lon": 67.29633,
+"operator": null,
+"kind": "oil"
+},
+{
+"name": "Banda Dawood Shah Oil Facility",
+"lat": 33.29717,
+"lon": 71.18973,
+"operator": null,
+"kind": "works"
+},
+{
+"name": "Hascol Lubricant Blending Plant",
+"lat": 24.79646,
+"lon": 67.40628,
+"operator": null,
+"kind": "oil"
+},
+{
+"name": "TransAsia Refinery Limited",
+"lat": 24.78443,
+"lon": 67.37944,
+"operator": null,
+"kind": "oil"
+},
+{
+"name": "SSGS RLNG Custody Transfer Point",
+"lat": 24.792,
+"lon": 67.36974,
+"operator": null,
+"kind": "oil"
+},
+{
+"name": "Khalis Oil refinery",
+"lat": 24.80604,
+"lon": 67.41175,
+"operator": null,
+"kind": "oil"
+},
+{
+"name": "Alnoor oil mil",
+"lat": 24.82742,
+"lon": 67.43354,
+"operator": null,
+"kind": "manufacturing"
+},
+{
+"name": "APAG Oil Pvt. LTD",
+"lat": 24.83062,
+"lon": 67.43335,
+"operator": null,
+"kind": "oil"
+},
+{
+"name": "Kausar Oil Mills Pvt Ltd",
+"lat": 24.82413,
+"lon": 67.41715,
+"operator": null,
+"kind": "oil"
+},
+{
+"name": "Sui Gas Colony and Substation",
+"lat": 29.49561,
+"lon": 67.84972,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "PSO Oil Terminal",
+"lat": 24.87068,
+"lon": 67.30297,
+"operator": "PSO",
+"kind": "oil"
+},
+{
+"name": "Pakistan Oil Fields Pindori",
+"lat": 33.24007,
+"lon": 72.93051,
+"operator": null,
+"kind": "industrial"
+},
+{
+"name": "Halini Oil Field",
+"lat": 33.14602,
+"lon": 71.45046,
+"operator": "Mari Energies Limited",
+"kind": "industrial"
+},
+{
+"name": "Siab Dhok Oil and Gas Field",
+"lat": 33.45158,
+"lon": 71.58528,
+"operator": "OGDCL",
+"kind": "industrial"
+},
+{
+"name": "M.A Oil Mill",
+"lat": 24.82088,
+"lon": 67.41864,
+"operator": null,
+"kind": "oil"
+}
+]

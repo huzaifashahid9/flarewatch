@@ -1,8 +1,9 @@
 {
-  "generated_at": "2026-11-06T09:24:18.558795+00:00",
+  "generated_at": "2026-11-06T18:24:19.279147+00:00",
   "sources": [
     "nasa-firms",
-    "world-bank-per-flare"
+    "world-bank-per-flare",
+    "openstreetmap"
   ],
   "firms_satellites": [
     "VIIRS_NOAA20_NRT",
@@ -43,6 +44,16 @@
       "mid": 63851948.0,
       "high": 82369012.0
     },
+    "lng_cargoes_per_yr": {
+      "low": 0.94,
+      "mid": 1.02,
+      "high": 1.32
+    },
+    "homes_powered": {
+      "low": 150674.0,
+      "mid": 163776.0,
+      "high": 211271.0
+    },
     "methods": [
       "baseline"
     ]
@@ -62,11 +73,72 @@
     "2026-10",
     "2026-11"
   ],
+  "national_trend": [
+    {
+      "year": 2012,
+      "bcm": 0.336
+    },
+    {
+      "year": 2013,
+      "bcm": 0.3776
+    },
+    {
+      "year": 2014,
+      "bcm": 0.2136
+    },
+    {
+      "year": 2015,
+      "bcm": 0.1854
+    },
+    {
+      "year": 2016,
+      "bcm": 0.1569
+    },
+    {
+      "year": 2017,
+      "bcm": 0.1351
+    },
+    {
+      "year": 2018,
+      "bcm": 0.1238
+    },
+    {
+      "year": 2019,
+      "bcm": 0.1488
+    },
+    {
+      "year": 2020,
+      "bcm": 0.1122
+    },
+    {
+      "year": 2021,
+      "bcm": 0.1155
+    },
+    {
+      "year": 2022,
+      "bcm": 0.1125
+    },
+    {
+      "year": 2023,
+      "bcm": 0.1109
+    },
+    {
+      "year": 2024,
+      "bcm": 0.1301
+    },
+    {
+      "year": 2025,
+      "bcm": 0.1244
+    }
+  ],
+  "new_sites": [],
   "assumptions": {
     "lng_price_usd_per_mmbtu": 18.4,
     "lng_price_source": "Pakistan spot LNG cargo price, April 2026",
     "dre_regulatory": 0.98,
     "dre_observed": 0.911,
-    "btu_per_scf": 1000
+    "btu_per_scf": 1000,
+    "mmbtu_per_lng_cargo": 3400000.0,
+    "kwh_per_home_per_year": 2400
   }
 }
