@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-05T06:55:08.967144+00:00",
+  "generated_at": "2026-11-06T09:24:18.558795+00:00",
   "sources": [
     "nasa-firms",
     "world-bank-per-flare"
@@ -10,5 +10,63 @@
   ],
   "calibration": "john-zink-2026",
   "site_count": 116,
-  "notes": []
+  "notes": [],
+  "totals": {
+    "sites_with_volume": 38,
+    "bcm_per_yr": {
+      "low": 0.0904,
+      "mid": 0.0983,
+      "high": 0.1268
+    },
+    "mmscfd": {
+      "low": 8.7,
+      "mid": 9.5,
+      "high": 12.3
+    },
+    "co2e_t_per_yr": {
+      "low": 232339.0,
+      "mid": 252542.0,
+      "high": 325779.0
+    },
+    "co2e_t_per_yr_at_observed_dre": {
+      "low": 311458.0,
+      "mid": 338541.0,
+      "high": 436719.0
+    },
+    "power_mw": {
+      "low": 41.3,
+      "mid": 44.9,
+      "high": 57.9
+    },
+    "value_usd_per_yr": {
+      "low": 58743792.0,
+      "mid": 63851948.0,
+      "high": 82369012.0
+    },
+    "methods": [
+      "baseline"
+    ]
+  },
+  "observed_months": [
+    "2025-11",
+    "2025-12",
+    "2026-01",
+    "2026-02",
+    "2026-03",
+    "2026-04",
+    "2026-05",
+    "2026-06",
+    "2026-07",
+    "2026-08",
+    "2026-09",
+    "2026-10",
+    "2026-11"
+  ],
+  "assumptions": {
+    "lng_price_usd_per_mmbtu": 18.4,
+    "lng_price_source": "Pakistan spot LNG cargo price, April 2026",
+    "dre_regulatory": 0.98,
+    "dre_observed": 0.911,
+    "btu_per_scf": 1000
+  }
 }
