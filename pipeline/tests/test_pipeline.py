@@ -220,3 +220,43 @@ def test_national_trend_and_timeline(tmp_path):
     run.write_timeline(d + [replace(d[0], source="nightfire", rh_mw=3.0)], tmp_path)
     tl = json.loads((tmp_path / "timeline.json").read_text())
     assert tl["rows"][0][0] == 0 and len(tl["rows"]) <= len(d)
+
+
+def test_pakistan_equivalents():
+    imp = run.impact(estimate.Range(1, 1, 1))
+    # 1 BCM = 35.3 million MMBtu, about 10.4 cargoes; 456.6 MW, about 1.67 million homes
+    assert imp["lng_cargoes_per_yr"]["mid"] == pytest.approx(10.39, abs=0.01)
+    assert imp["homes_powered"]["mid"] == pytest.approx(4e9 / 2400, rel=1e-3)
+
+
+def test_osm_parse_and_nearest_field():
+    from flarewatch.sources import osm
+    payload = {"elements": [
+        {"type": "node", "lat": 27.70, "lon": 68.81, "tags": {"name": "Example Gas Field", "operator": "X"}},
+        {"type": "way", "center": {"lat": 30.0, "lon": 70.0}, "tags": {"industrial": "gas"}},
+        {"type": "node", "lat": 27.70, "lon": 68.81, "tags": {"name": "Example Gas Field"}},
+    ]}
+    f = osm.parse(payload)
+    assert len(f) == 1 and f[0]["operator"] == "X"
+    near = run.nearest_field(27.7005, 68.8003, f)
+    assert near["name"] == "Example Gas Field" and near["km"] < 2
+    assert run.nearest_field(35.0, 75.0, f) is None
+
+
+def test_new_sites_use_first_seen():
+    from datetime import date
+    sites = [{"id": "a", "first_seen": "2026-11-01", "activity_class": "new"},
+             {"id": "b", "first_seen": "2026-01-01", "activity_class": "persistent"}]
+    assert run.new_sites(sites, today=date(2026, 11, 6)) == ["a"]
+
+
+def test_recent_multi_night_site_is_new():
+    from datetime import datetime, timezone
+    from flarewatch.sources.base import Detection
+    filler = [Detection(30.0 + m / 10, 70.0, datetime(2026, m, 1, 21, tzinfo=timezone.utc),
+                        "N20", "firms") for m in range(1, 12)]
+    burning = [Detection(27.7, 68.8, datetime(2026, 11, day, 21, tzinfo=timezone.utc), "N20", "firms")
+               for day in range(1, 7)]
+    sites = run.build_sites(burning + filler, [])
+    assert [s["activity_class"] for s in sites] == ["new"]
+    assert run.new_sites(sites, today=datetime(2026, 11, 7).date()) == [sites[0]["id"]]

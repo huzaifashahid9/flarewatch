@@ -91,3 +91,7 @@ LNG_PRICE_SOURCE = "Pakistan spot LNG cargo price, April 2026"
 # brick kilns and cement or steel plants are mostly cooler (Elvidge et al.
 # 2016). Used only in the private, Nightfire-based output.
 FLARE_MIN_TEMP_K = 1400
+
+# "Pakistan equivalents", stated assumptions shown in the UI.
+MMBTU_PER_LNG_CARGO = 3.4e6  # a standard ~170,000 m3 LNG cargo, about 3.4 TBtu
+KWH_PER_HOME_PER_YEAR = 2400  # assumed typical Pakistani household, ~200 kWh a month

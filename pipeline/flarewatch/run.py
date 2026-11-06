@@ -20,7 +20,7 @@ import numpy as np
 from . import archive, geo
 from . import cluster as clustering
 from . import config, estimate
-from .sources import firms, nightfire, worldbank
+from .sources import firms, nightfire, osm, worldbank
 from .sources.base import BaselineFlare, Detection, SourceNotConfigured
 
 BASELINE_MATCH_RADIUS_M = 1000.0
@@ -46,16 +46,36 @@ def match_baseline(site: clustering.Site,
     return baseline[i] if dist[i] <= BASELINE_MATCH_RADIUS_M else None
 
 
+NEAREST_FIELD_MAX_KM = 15.0
+NEW_SITE_DAYS = 14
+NEW_SITE_MIN_NIGHTS = 5
+
+
+def nearest_field(lat: float, lon: float, fields: Sequence[dict]) -> Optional[dict]:
+    if not fields:
+        return None
+    d = clustering.haversine_m(lat, lon, np.array([f["lat"] for f in fields]),
+                               np.array([f["lon"] for f in fields]))
+    i = int(np.argmin(d))
+    if d[i] > NEAREST_FIELD_MAX_KM * 1000:
+        return None
+    f = fields[i]
+    return {"name": f["name"], "operator": f.get("operator"), "km": round(float(d[i]) / 1000, 1)}
+
+
 def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlare],
                 kilns: Sequence[Tuple[float, float]] = (),
                 frp_history: Optional[Dict[str, float]] = None,
-                public: bool = True) -> List[dict]:
+                public: bool = True, fields: Sequence[dict] = ()) -> List[dict]:
     """public=True never uses VIIRS Nightfire values. The VNF academic
     licence forbids public machine-readable redistribution (1b) and public
     current-year volume estimates (1e), so Nightfire-based numbers go only to
     the private, non-public output."""
     frp_history = frp_history or {}
     sites = clustering.cluster(detections)
+    latest = max((d.observed_at.date() for d in detections), default=datetime.now(timezone.utc).date())
+    new_cutoff = (latest - timedelta(days=NEW_SITE_DAYS)).isoformat()
+    still_cutoff = (latest - timedelta(days=3)).isoformat()
     observed_months = sorted({d.observed_at.strftime("%Y-%m") for d in detections})
     base = list(latest_baseline(baseline).values())
     out = []
@@ -64,7 +84,15 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
             continue
         cls, share = clustering.activity_class(s, observed_months)
         match = match_baseline(s, base)
-        if cls == "sporadic" and match is None:
+        recent = s.nights[0] >= new_cutoff
+        still_burning = s.nights[-1] >= still_cutoff
+        if (recent and still_burning and len(s.nights) >= NEW_SITE_MIN_NIGHTS
+                and match is None and cls != "persistent"):
+            # First seen in the last two weeks, back on many nights and still
+            # burning: a possible new flare. Crop fires usually stop within a
+            # few days, so they fail the night count or the still-burning test.
+            cls = "new"
+        elif cls == "sporadic" and match is None:
             # Seen in under a fifth of months and not a known flare: most
             # likely crop burning or another short-lived fire.
             continue
@@ -94,6 +122,8 @@ def build_sites(detections: Sequence[Detection], baseline: Sequence[BaselineFlar
             # Nights detected in each observed month, aligned with
             # meta.observed_months, for the activity chart.
             "monthly_nights": monthly_nights(s, observed_months),
+            "first_seen": s.nights[0],
+            "nearest_field": nearest_field(s.lat, s.lon, fields),
         }
         if vol is not None:
             site["impact"] = impact(vol.bcm_per_yr)
@@ -157,6 +187,10 @@ def impact(bcm: estimate.Range) -> dict:
         "co2e_t_per_yr_at_observed_dre": _r(estimate.co2e_t_per_yr(bcm, config.DRE_OBSERVED)),
         "power_mw": _r(estimate.power_mw(bcm), 1),
         "value_usd_per_yr": _r(estimate.value_usd_per_yr(bcm, config.LNG_PRICE_USD_PER_MMBTU)),
+        "lng_cargoes_per_yr": _r(bcm.scale(estimate.SCF_PER_M3 * config.M3_PER_BCM * 1000 / 1e6
+                                           / config.MMBTU_PER_LNG_CARGO), 2),
+        "homes_powered": _r(estimate.power_mw(bcm).scale(1000 * config.HOURS_PER_YEAR
+                                                         / config.KWH_PER_HOME_PER_YEAR)),
     }
 
 
@@ -203,6 +237,13 @@ def write_timeline(detections: Sequence[Detection], out_dir: Path) -> None:
         {"start": start.isoformat(), "rows": [list(r) for r in rows]}, separators=(",", ":")))
 
 
+def new_sites(sites: Sequence[dict], today=None, days: int = NEW_SITE_DAYS) -> List[str]:
+    """Sites first seen within the last `days` days of a one-year archive."""
+    today = today or datetime.now(timezone.utc).date()
+    cutoff = (today - timedelta(days=days)).isoformat()
+    return [s["id"] for s in sites if s["activity_class"] == "new" and s["first_seen"] >= cutoff]
+
+
 def write_outputs(sites: List[dict], out_dir: Path, sources_used: List[str],
                   notes: List[str], observed_months: Sequence[str] = (),
                   trend: Sequence[dict] = ()) -> None:
@@ -222,12 +263,15 @@ def write_outputs(sites: List[dict], out_dir: Path, sources_used: List[str],
         "totals": totals(sites),
         "observed_months": list(observed_months),
         "national_trend": list(trend),
+        "new_sites": new_sites(sites),
         "assumptions": {
             "lng_price_usd_per_mmbtu": config.LNG_PRICE_USD_PER_MMBTU,
             "lng_price_source": config.LNG_PRICE_SOURCE,
             "dre_regulatory": config.DRE_REGULATORY,
             "dre_observed": config.DRE_OBSERVED,
             "btu_per_scf": 1000,
+            "mmbtu_per_lng_cargo": config.MMBTU_PER_LNG_CARGO,
+            "kwh_per_home_per_year": config.KWH_PER_HOME_PER_YEAR,
         },
     }
     (out_dir / "meta.json").write_text(json.dumps(meta, indent=2))
@@ -243,6 +287,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--backfill-days", type=int, default=0,
                    help="Also fetch this many past days from the FIRMS archive")
     p.add_argument("--private-out", type=Path, default=Path("../data/private"))
+    p.add_argument("--osm-cache", type=Path, default=Path("../data/reference/osm_oil_gas.json"))
     args = p.parse_args(argv)
 
     notes: List[str] = []
@@ -265,7 +310,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     except SourceNotConfigured as exc:
         baseline = []
         notes.append(str(exc))
-    sites = build_sites(detections, baseline, public=True)
+    fields = osm.load_or_fetch(args.osm_cache)
+    if fields:
+        used.append("openstreetmap")
+    sites = build_sites(detections, baseline, public=True, fields=fields)
     months = sorted({d.observed_at.strftime("%Y-%m") for d in detections})
     write_outputs(sites, args.out, used, notes, months, national_trend(baseline))
     write_timeline(detections, args.out)
