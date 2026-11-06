@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { Meta, SiteProps } from "@/lib-types";
 import { useLang, useT } from "@/i18n";
 import { GradeCard } from "./ReportCard";
+import { DayNightCounts, FirePatternLine, PeopleLine } from "./SiteExtras";
 
 const money = (n: number) =>
   (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 1 });
@@ -191,6 +192,13 @@ export default function SiteReport({ site, meta, onClose }: { site: SiteProps; m
         <button onClick={onClose} className="rounded px-2 text-lg text-neutral-400 hover:text-white" aria-label="Close">×</button>
       </div>
       <GradeCard site={site} />
+      {(site.fire_pattern || site.people_within_5km != null) && (
+        <div className="mt-3 space-y-0.5 text-xs">
+          <FirePatternLine site={site} />
+          {site.days_seen != null && <div className="text-neutral-500"><DayNightCounts site={site} /></div>}
+          <PeopleLine site={site} className="text-neutral-300" />
+        </div>
+      )}
       {months.length > 0 && site.monthly_nights && (
         <div className="mt-3">
           <h3 className="mb-1 font-semibold text-white">{t("Activity over the last year")}</h3>

@@ -31,6 +31,8 @@ function compact(sites: SiteProps[]) {
     province: s.province ?? null,
     grade: gradeOf(s)?.letter ?? null,
     world_bank_trend: s.trend ?? null,
+    fire_pattern: s.fire_pattern ?? null,
+    people_within_5km: s.people_within_5km ?? null,
   }));
 }
 

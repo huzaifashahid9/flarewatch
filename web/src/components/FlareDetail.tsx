@@ -7,6 +7,7 @@ import { useT } from "@/i18n";
 import { GradeBadge, GradeCard } from "./ReportCard";
 import { MonthlyChart, RecoveryPlanner } from "./SiteReport";
 import { Card } from "./Overview";
+import { DayNightCounts, FirePatternLine, FollowFlare, PeopleLine, SatellitePhoto } from "./SiteExtras";
 
 const compact = (n: number) => n.toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 1 });
 
@@ -71,6 +72,8 @@ export default function FlareDetail({ id }: { id: string }) {
           <Card title={t("Facts")}>
             <ul className="space-y-1 text-sm text-neutral-300">
               <li>{t("Seen on {n} nights, last {d}", { n: site.nights_detected, d: site.last_seen })}</li>
+              {site.fire_pattern && <li><FirePatternLine site={site} /> <span className="text-xs text-neutral-500"><DayNightCounts site={site} /></span></li>}
+              {site.people_within_5km != null && <li><PeopleLine site={site} /> <span className="text-xs text-neutral-500">(WorldPop 2020)</span></li>}
               {site.first_seen && <li>{t("First seen {d}", { d: site.first_seen })}</li>}
               <li>{site.in_world_bank_catalogue ? t("Known flare (World Bank {y})", { y: site.baseline_year ?? "" }) : t("Unconfirmed: not a known flare. Could be a cement, steel or brick plant.")}</li>
               {site.nearest_field && <li>{t("Nearest named field: {f} ({km} km, OpenStreetMap)", { f: site.nearest_field.name, km: site.nearest_field.km })}</li>}
@@ -79,10 +82,18 @@ export default function FlareDetail({ id }: { id: string }) {
             </ul>
           </Card>
         </div>
+        <div className="space-y-4">
+        <Card title={t("Satellite photo")}>
+          <SatellitePhoto site={site} />
+        </Card>
         <div className="rounded-xl bg-neutral-900 p-4 ring-1 ring-neutral-800">
           {site.volume ? <RecoveryPlanner site={site} meta={meta} /> : (
             <p className="text-sm text-neutral-400">{t("No recovery plan: this site has no volume estimate yet, because it is not a known flare.")}</p>
           )}
+        </div>
+        <div className="rounded-xl bg-neutral-900 p-4 ring-1 ring-neutral-800">
+          <FollowFlare site={site} />
+        </div>
         </div>
       </div>
     </div>

@@ -9,6 +9,7 @@ import { useT } from "@/i18n";
 import type { SiteProps } from "@/lib-types";
 import { MoneyCounter, Tracker2030 } from "./Counter";
 import { GradeBadge, ProvinceRanking } from "./ReportCard";
+import { BriefingCard } from "./SiteExtras";
 
 const num = (n: number) => n.toLocaleString("en-US");
 const compact = (n: number) => n.toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 1 });
@@ -31,7 +32,9 @@ export default function Overview() {
     s.forEach((x) => { const g = gradeOf(x); if (g) grades[g.letter] += 1; });
     const months = data.meta.observed_months ?? [];
     const monthly = months.map((_, i) => s.reduce((sum, x) => sum + (x.monthly_nights?.[i] ?? 0), 0));
-    return { known, fresh, grades, months, monthly, total: s.length };
+    const near = s.filter((x) => x.in_world_bank_catalogue && x.people_within_5km != null);
+    const people = near.length ? near.reduce((sum, x) => sum + (x.people_within_5km ?? 0), 0) : null;
+    return { known, fresh, grades, months, monthly, total: s.length, people };
   }, [data]);
 
   if (error) return <Empty text={t("No data yet. The nightly job has not produced a run for this deployment.")} />;
@@ -54,6 +57,8 @@ export default function Overview() {
         </Link>
       </header>
 
+      <BriefingCard />
+
       {tot && (
         <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
           <Kpi big label={t("Gas value burned per year")} value={t("Rs {n} crore", { n: num(crore(tot.value_usd_per_yr.mid)) })}
@@ -63,11 +68,12 @@ export default function Overview() {
           <Kpi label={t("MMSCFD gas")} value={String(tot.mmscfd.mid)} />
         </section>
       )}
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <section className={`grid grid-cols-2 gap-3 ${stats.people != null ? "lg:grid-cols-5" : "lg:grid-cols-4"}`}>
         <Kpi label={t("Known flares")} value={num(stats.known)} />
         <Kpi label={t("Hot spots watched")} value={num(stats.total)} />
         <Kpi label={t("new flares in the last 2 weeks")} value={num(stats.fresh.length)} accent={stats.fresh.length > 0} />
         <Kpi label={t("Worst grade (F) flares")} value={num(stats.grades.F)} />
+        {stats.people != null && <Kpi label={t("People living within 5 km of a known flare")} value={compact(stats.people)} />}
       </section>
 
       <section className="grid gap-4 lg:grid-cols-3">

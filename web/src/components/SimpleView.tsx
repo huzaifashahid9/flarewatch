@@ -1,5 +1,6 @@
 "use client";
 
+import { FirePatternLine, PeopleLine } from "./SiteExtras";
 import type React from "react";
 
 // The plain-language view: big numbers in rupees and homes, no jargon.
@@ -140,6 +141,8 @@ export function SimpleSite({ site, onDetails }: { site: SiteProps; onDetails: ()
       {site.nearest_field?.operator && <div className="text-neutral-600">{t("Field run by {c}", { c: site.nearest_field.operator })}</div>}
       <div className="mt-1">{t("Seen burning on {n} nights this year.", { n: site.nights_detected })}</div>
       <TrendLine site={site} className="text-xs" />
+      <FirePatternLine site={site} className="text-xs" />
+      <PeopleLine site={site} className="text-xs text-neutral-600" />
       {usd != null && usd > 0 ? (
         <div className="mt-2 rounded-lg bg-orange-50 p-2">
           <div className="text-lg font-bold text-orange-700">{t("Rs {n} crore a year", { n: num(Math.max(1, crore(usd))) })}</div>

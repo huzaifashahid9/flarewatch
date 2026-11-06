@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Suspense, useEffect, useState } from "react";
 import { LangContext, SetLangContext, useT, type Lang } from "@/i18n";
-import { ChatIcon, CheckIcon, FlameIcon, GridIcon, ListIcon, MapIcon } from "./Icons";
+import { BuildingIcon, ChatIcon, CheckIcon, FlameIcon, GridIcon, ListIcon, MapIcon } from "./Icons";
 
 const NAV = [
   { href: "/", label: "Overview", Icon: GridIcon },
   { href: "/map", label: "Live map", Icon: MapIcon },
   { href: "/flares", label: "All flares", Icon: ListIcon },
+  { href: "/companies", label: "Companies", Icon: BuildingIcon },
   { href: "/check", label: "Check a report", Icon: CheckIcon },
   { href: "/ask", label: "Ask the AI", Icon: ChatIcon },
 ];

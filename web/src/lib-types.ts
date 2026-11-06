@@ -26,6 +26,21 @@ export type SiteProps = {
   province?: string | null;
   baseline_history?: [number, number][];
   trend?: { direction: "improving" | "steady" | "worsening"; change_pct: number; from_year: number; to_year: number } | null;
+  grade?: string | null;
+  /** Daytime FIRMS passes within 1 km; flares burn day and night, farm fires mostly by day. */
+  days_seen?: number;
+  fire_pattern?: "day and night" | "mostly daytime" | "too little data";
+  /** WorldPop 2020 estimate of people living within 5 km. */
+  people_within_5km?: number | null;
+};
+
+export type Briefing = {
+  headline_en: string;
+  summary_en: string;
+  headline_ur: string;
+  summary_ur: string;
+  generated_at: string;
+  since: string | null;
 };
 
 export type ProvinceRow = { name: string; sites: number; known_flares: number; mmscfd: number; value_usd_per_yr: number };

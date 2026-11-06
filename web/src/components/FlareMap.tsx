@@ -296,7 +296,7 @@ function Stat({ label, value }: { label: string; value: number }) {
 }
 
 const SOURCE_NAME: Record<string, string> = {
-  "nasa-firms": "NASA FIRMS", "world-bank-per-flare": "World Bank", openstreetmap: "OpenStreetMap", nightfire: "VIIRS Nightfire",
+  "nasa-firms": "NASA FIRMS", "world-bank-per-flare": "World Bank", openstreetmap: "OpenStreetMap", nightfire: "VIIRS Nightfire", worldpop: "WorldPop 2020",
 };
 
 function DataHealth({ meta }: { meta: Meta }) {

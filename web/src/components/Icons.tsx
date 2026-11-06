@@ -71,3 +71,13 @@ export const DownloadIcon = ({ className }: P) => (
     <path d="M12 4v11M7 10l5 5 5-5M5 20h14" />
   </svg>
 );
+export const BuildingIcon = ({ className }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} aria-hidden>
+    <path d="M4 20V6l7-3v17M11 9h9v11M7 8h1M7 12h1M7 16h1M14 13h3M14 17h3M3 20h18" />
+  </svg>
+);
+export const BellIcon = ({ className }: P) => (
+  <svg viewBox="0 0 24 24" className={className} {...base} aria-hidden>
+    <path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 20a2 2 0 0 0 4 0" />
+  </svg>
+);
