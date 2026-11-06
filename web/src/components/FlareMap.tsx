@@ -13,6 +13,8 @@ import SiteReport from "./SiteReport";
 import ReconcilePanel from "./ReconcilePanel";
 import AnalystPanel from "./AnalystPanel";
 import { SimplePanel, SimpleSite } from "./SimpleView";
+import { GradeBadge, ProvinceRanking, TrendLine } from "./ReportCard";
+import { gradeOf } from "@/grade";
 import { DreToggle, Headline, SiteImpact, type Dre } from "./Impact";
 
 // Set in Vercel (Project → Settings → Environment Variables). Without it the
@@ -209,7 +211,8 @@ export default function FlareMap() {
         )}
         {data && meta && mode === "simple" && (
           <div className="mt-3">
-            <SimplePanel meta={meta} counts={counts} playing={tlOn} onExpert={() => setMode("expert")}
+            <SimplePanel meta={meta} counts={counts} sites={data.features.map((f) => f.properties)}
+              onPick={(s) => { setSelected(s); setFocus(s); }} playing={tlOn} onExpert={() => setMode("expert")}
               onAsk={() => { setSelected(null); setReconcile(false); setAnalyst(true); }}
               onPlay={GOOGLE_KEY ? () => (tlOn ? (setTlOn(false), setPlaying(false)) : startTimelapse()) : undefined} />
           </div>
@@ -261,6 +264,7 @@ export default function FlareMap() {
               <LeftText k="Check a flare report against satellites" />
             </button>
             <Tracker2030 meta={meta} />
+            {meta.provinces && <div className="mt-3"><ProvinceRanking rows={meta.provinces} /></div>}
             <DataHealth meta={meta} />
           </>
         )}
@@ -329,7 +333,7 @@ function SitePanel({ site, dre }: { site: SiteProps; dre: Dre }) {
   const lang = useLang();
   return (
     <div dir={lang === "ur" ? "rtl" : "ltr"} className="text-sm text-neutral-900">
-      <div className="font-semibold capitalize">{t(site.activity_class.charAt(0).toUpperCase() + site.activity_class.slice(1))} {t("site")}</div>
+      <div className="flex items-center gap-1.5 font-semibold capitalize">{gradeOf(site) && <GradeBadge g={gradeOf(site)!} />}{t(site.activity_class.charAt(0).toUpperCase() + site.activity_class.slice(1))} {t("site")}</div>
       {site.in_world_bank_catalogue ? (
         <div className="text-xs text-emerald-700">{t("Known flare (World Bank {y})", { y: site.baseline_year ?? "" })}</div>
       ) : (
@@ -349,6 +353,7 @@ function SitePanel({ site, dre }: { site: SiteProps; dre: Dre }) {
       <div className="mt-2">
         {t("Seen on {n} nights, last {d}", { n: site.nights_detected, d: site.last_seen })}
       </div>
+      <TrendLine site={site} className="text-xs" />
       <div>{t("Satellites")}: {site.satellites.join(", ")}</div>
       {site.mean_frp_mw != null && <div>{t("Brightness: {b} MW (FIRMS FRP)", { b: fmt(site.mean_frp_mw, 1) })}</div>}
       {v ? (

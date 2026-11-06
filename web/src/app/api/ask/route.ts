@@ -1,5 +1,6 @@
 import Anthropic from "@anthropic-ai/sdk";
 import type { Meta, SiteProps } from "@/lib-types";
+import { gradeOf } from "@/grade";
 
 // AI analyst: answers questions about the public FlareWatch data only
 // (NASA FIRMS + World Bank). It never sees VIIRS Nightfire data.
@@ -27,6 +28,9 @@ function compact(sites: SiteProps[]) {
     co2e_t_per_yr_mid: s.impact ? s.impact.co2e_t_per_yr.mid : null,
     monthly_nights: s.monthly_nights,
     nearest_field: s.nearest_field ?? null,
+    province: s.province ?? null,
+    grade: gradeOf(s)?.letter ?? null,
+    world_bank_trend: s.trend ?? null,
   }));
 }
 
@@ -37,6 +41,8 @@ Rules:
 - Sites not in the catalogue are "unconfirmed heat sources" that may be cement, steel or brick plants; say so when relevant.
 - Activity classes come from the share of observed months with detections. Cloudy nights are missing, not zero.
 - nearest_field is the closest oil or gas field named on OpenStreetMap (within 15 km), not proof of ownership. If asked which company holds a licence, say the data cannot prove it and suggest the DGPC concession map.
+- grade is the FlareWatch report card: A (small, rare flare) to F (large flare that burns almost every month); points come from size, how often it burns, and the World Bank trend.
+- world_bank_trend compares the flare's latest World Bank year with three years earlier.
 - If the question is not about this data, say what you can help with instead.`;
 
 export async function POST(req: Request) {
@@ -60,7 +66,7 @@ export async function POST(req: Request) {
   ]);
   const data = JSON.stringify({
     generated_at: meta.generated_at, observed_months: meta.observed_months,
-    totals: meta.totals, assumptions: meta.assumptions,
+    totals: meta.totals, assumptions: meta.assumptions, provinces: meta.provinces,
     sites: compact((geo.features as { properties: SiteProps }[]).map((f) => f.properties)),
   });
 

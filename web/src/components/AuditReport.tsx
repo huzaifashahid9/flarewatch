@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { gradeOf } from "@/grade";
 import type { Meta, SiteProps } from "@/lib-types";
 import { MonthlyChart, planOptions } from "./SiteReport";
 
@@ -50,6 +51,10 @@ export default function AuditReport({ id }: { id: string }) {
           ["Nights seen", num(site.nights_detected)],
           ["Last seen", site.last_seen],
           ["Known flare", site.in_world_bank_catalogue ? `Yes (WB ${site.baseline_year})` : "No"],
+          ["Report card", gradeOf(site)?.letter ?? "Not graded"],
+          ["World Bank trend", site.trend ? `${site.trend.direction} (${site.trend.change_pct > 0 ? "+" : ""}${site.trend.change_pct}%, ${site.trend.from_year}–${site.trend.to_year})` : "n/a"],
+          ["Province", site.province ?? "n/a"],
+          ["Nearest field", site.nearest_field?.name ?? "n/a"],
         ].map(([k, val]) => (
           <div key={k} className="rounded border border-neutral-200 p-2">
             <div className="text-[11px] uppercase text-neutral-500">{k}</div>

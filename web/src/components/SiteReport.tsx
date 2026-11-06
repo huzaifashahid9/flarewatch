@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { Meta, SiteProps } from "@/lib-types";
 import { useLang, useT } from "@/i18n";
+import { GradeCard } from "./ReportCard";
 
 const money = (n: number) =>
   (n < 0 ? "-$" : "$") + Math.abs(n).toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 1 });
@@ -189,6 +190,7 @@ export default function SiteReport({ site, meta, onClose }: { site: SiteProps; m
         </div>
         <button onClick={onClose} className="rounded px-2 text-lg text-neutral-400 hover:text-white" aria-label="Close">×</button>
       </div>
+      <GradeCard site={site} />
       {months.length > 0 && site.monthly_nights && (
         <div className="mt-3">
           <h3 className="mb-1 font-semibold text-white">{t("Activity over the last year")}</h3>

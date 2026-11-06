@@ -23,7 +23,12 @@ export type SiteProps = {
   monthly_nights?: number[];
   first_seen?: string;
   nearest_field?: { name: string; operator: string | null; km: number } | null;
+  province?: string | null;
+  baseline_history?: [number, number][];
+  trend?: { direction: "improving" | "steady" | "worsening"; change_pct: number; from_year: number; to_year: number } | null;
 };
+
+export type ProvinceRow = { name: string; sites: number; known_flares: number; mmscfd: number; value_usd_per_yr: number };
 
 export type Impact = {
   co2e_t_per_yr: Range;
@@ -52,6 +57,7 @@ export type Meta = {
   observed_months?: string[];
   national_trend?: { year: number; bcm: number }[];
   new_sites?: string[];
+  provinces?: ProvinceRow[];
   assumptions?: {
     lng_price_usd_per_mmbtu: number;
     lng_price_source: string;

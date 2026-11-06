@@ -7,6 +7,8 @@ import type React from "react";
 
 import type { Meta, SiteProps } from "@/lib-types";
 import { useT, useLang } from "@/i18n";
+import { gradeOf } from "@/grade";
+import { GradeBadge, ProvinceRanking, TrendLine, WorstList } from "./ReportCard";
 import { ChatIcon, CoinIcon, FlameIcon, HomeIcon, PlayIcon, SatelliteIcon, SparkIcon } from "./Icons";
 
 const PKR_PER_USD = 280; // assumed, same as the money counter
@@ -21,8 +23,10 @@ const num = (n: number) => n.toLocaleString("en-US");
 
 type Counts = { persistent: number; intermittent: number; known: number; new: number };
 
-export function SimplePanel({ meta, counts, onPlay, playing, onExpert, onAsk }: {
+export function SimplePanel({ meta, counts, onPlay, playing, onExpert, onAsk, sites, onPick }: {
   meta: Meta;
+  sites: SiteProps[];
+  onPick: (s: SiteProps) => void;
   counts: Counts;
   onPlay?: () => void;
   playing: boolean;
@@ -50,6 +54,9 @@ export function SimplePanel({ meta, counts, onPlay, playing, onExpert, onAsk }: 
         <Tile icon={<FlameIcon className="h-6 w-6 text-orange-400" />} value={counts.known} label={t("gas flares we can see")} />
         <Tile icon={<SparkIcon className="h-6 w-6 text-cyan-300" />} value={counts.new} label={t("new flares in the last 2 weeks")} />
       </div>
+
+      <WorstList sites={sites} onPick={onPick} />
+      {meta.provinces && <ProvinceRanking rows={meta.provinces} />}
 
       <div className="rounded-xl bg-neutral-900 p-3">
         <div className="mb-2 text-sm font-semibold text-white">{t("How it works")}</div>
@@ -121,14 +128,17 @@ export function SimpleSite({ site, onDetails }: { site: SiteProps; onDetails: ()
   const homes = site.impact ? site.impact.homes_powered?.mid ?? homesFromMw(site.impact.power_mw.mid) : null;
   const where = site.nearest_field?.name;
   const lang = useLang();
+  const g = gradeOf(site);
   return (
     <div dir={lang === "ur" ? "rtl" : "ltr"} className="max-w-[260px] text-sm text-neutral-900">
       <div className="flex items-center gap-1.5 text-base font-semibold">
+        {g && <GradeBadge g={g} />}
         {site.activity_class === "new" ? <SparkIcon className="h-5 w-5 text-cyan-600" /> : <FlameIcon className={`h-5 w-5 ${site.in_world_bank_catalogue ? "text-orange-600" : "text-neutral-400"}`} />}
         {site.activity_class === "new" ? t("New gas flare") : site.in_world_bank_catalogue ? t("Gas flare") : t("Hot spot, not confirmed")}
       </div>
       {where && <div className="text-neutral-600">{t("Near {f}", { f: where })}</div>}
       <div className="mt-1">{t("Seen burning on {n} nights this year.", { n: site.nights_detected })}</div>
+      <TrendLine site={site} className="text-xs" />
       {usd != null && usd > 0 ? (
         <div className="mt-2 rounded-lg bg-orange-50 p-2">
           <div className="text-lg font-bold text-orange-700">{t("Rs {n} crore a year", { n: num(Math.max(1, crore(usd))) })}</div>
