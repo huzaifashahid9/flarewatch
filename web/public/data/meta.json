@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-09T09:47:24.483610+00:00",
+  "generated_at": "2026-11-10T09:49:06.870321+00:00",
   "sources": [
     "nasa-firms",
     "worldpop",
@@ -11,49 +11,49 @@
     "VIIRS_NOAA21_NRT"
   ],
   "calibration": "john-zink-2026",
-  "site_count": 115,
+  "site_count": 116,
   "notes": [],
   "totals": {
-    "sites_with_volume": 38,
+    "sites_with_volume": 39,
     "bcm_per_yr": {
-      "low": 0.0904,
-      "mid": 0.0983,
-      "high": 0.1268
+      "low": 0.0936,
+      "mid": 0.1017,
+      "high": 0.1313
     },
     "mmscfd": {
-      "low": 8.7,
-      "mid": 9.5,
-      "high": 12.3
+      "low": 9.1,
+      "mid": 9.8,
+      "high": 12.7
     },
     "co2e_t_per_yr": {
-      "low": 232339.0,
-      "mid": 252542.0,
-      "high": 325779.0
+      "low": 240576.0,
+      "mid": 261496.0,
+      "high": 337329.0
     },
     "co2e_t_per_yr_at_observed_dre": {
-      "low": 311458.0,
-      "mid": 338541.0,
-      "high": 436719.0
+      "low": 322500.0,
+      "mid": 350544.0,
+      "high": 452201.0
     },
     "power_mw": {
-      "low": 41.3,
-      "mid": 44.9,
-      "high": 57.9
+      "low": 42.7,
+      "mid": 46.5,
+      "high": 59.9
     },
     "value_usd_per_yr": {
-      "low": 58743792.0,
-      "mid": 63851948.0,
-      "high": 82369012.0
+      "low": 60826433.0,
+      "mid": 66115688.0,
+      "high": 85289238.0
     },
     "lng_cargoes_per_yr": {
-      "low": 0.94,
-      "mid": 1.02,
-      "high": 1.32
+      "low": 0.97,
+      "mid": 1.06,
+      "high": 1.36
     },
     "homes_powered": {
-      "low": 150674.0,
-      "mid": 163776.0,
-      "high": 211271.0
+      "low": 156016.0,
+      "mid": 169582.0,
+      "high": 218761.0
     },
     "methods": [
       "baseline"
@@ -136,10 +136,10 @@
   "provinces": [
     {
       "name": "Sindh",
-      "sites": 36,
-      "known_flares": 20,
-      "mmscfd": 4.54,
-      "value_usd_per_yr": 30504654
+      "sites": 37,
+      "known_flares": 21,
+      "mmscfd": 4.88,
+      "value_usd_per_yr": 32768394
     },
     {
       "name": "Khyber Pakhtunkhwa",
