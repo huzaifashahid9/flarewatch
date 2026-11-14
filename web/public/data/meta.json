@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-13T09:31:07.113521+00:00",
+  "generated_at": "2026-11-14T08:58:54.351184+00:00",
   "sources": [
     "nasa-firms",
     "worldpop",
@@ -11,14 +11,14 @@
     "VIIRS_NOAA21_NRT"
   ],
   "calibration": "john-zink-2026",
-  "site_count": 113,
+  "site_count": 111,
   "notes": [],
   "totals": {
-    "sites_with_volume": 37,
+    "sites_with_volume": 36,
     "bcm_per_yr": {
-      "low": 0.0902,
-      "mid": 0.098,
-      "high": 0.1264
+      "low": 0.0899,
+      "mid": 0.0977,
+      "high": 0.1261
     },
     "mmscfd": {
       "low": 8.7,
@@ -26,34 +26,34 @@
       "high": 12.2
     },
     "co2e_t_per_yr": {
-      "low": 231735.0,
-      "mid": 251885.0,
-      "high": 324932.0
+      "low": 231058.0,
+      "mid": 251150.0,
+      "high": 323983.0
     },
     "co2e_t_per_yr_at_observed_dre": {
-      "low": 310648.0,
-      "mid": 337661.0,
-      "high": 435583.0
+      "low": 309741.0,
+      "mid": 336675.0,
+      "high": 434310.0
     },
     "power_mw": {
-      "low": 41.2,
-      "mid": 44.8,
-      "high": 57.7
+      "low": 41.1,
+      "mid": 44.6,
+      "high": 57.6
     },
     "value_usd_per_yr": {
-      "low": 58591025.0,
-      "mid": 63685896.0,
-      "high": 82154806.0
+      "low": 58419884.0,
+      "mid": 63499874.0,
+      "high": 81914838.0
     },
     "lng_cargoes_per_yr": {
-      "low": 0.94,
+      "low": 0.93,
       "mid": 1.02,
       "high": 1.31
     },
     "homes_powered": {
-      "low": 150282.0,
-      "mid": 163350.0,
-      "high": 210721.0
+      "low": 149843.0,
+      "mid": 162873.0,
+      "high": 210106.0
     },
     "methods": [
       "baseline"
@@ -150,10 +150,10 @@
     },
     {
       "name": "Punjab",
-      "sites": 46,
-      "known_flares": 7,
-      "mmscfd": 1.54,
-      "value_usd_per_yr": 10309650
+      "sites": 44,
+      "known_flares": 6,
+      "mmscfd": 1.51,
+      "value_usd_per_yr": 10123628
     },
     {
       "name": "Balochistan",
