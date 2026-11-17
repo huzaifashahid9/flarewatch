@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-16T09:42:02.811904+00:00",
+  "generated_at": "2026-11-17T10:43:12.748772+00:00",
   "sources": [
     "nasa-firms",
     "worldpop",
@@ -11,7 +11,7 @@
     "VIIRS_NOAA21_NRT"
   ],
   "calibration": "john-zink-2026",
-  "site_count": 111,
+  "site_count": 110,
   "notes": [],
   "totals": {
     "sites_with_volume": 36,
@@ -143,7 +143,7 @@
     },
     {
       "name": "Khyber Pakhtunkhwa",
-      "sites": 22,
+      "sites": 21,
       "known_flares": 7,
       "mmscfd": 3.03,
       "value_usd_per_yr": 20330464
