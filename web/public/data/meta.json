@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-24T12:28:41.079666+00:00",
+  "generated_at": "2026-11-25T11:16:23.711282+00:00",
   "sources": [
     "nasa-firms",
     "worldpop",
@@ -11,49 +11,49 @@
     "VIIRS_NOAA21_NRT"
   ],
   "calibration": "john-zink-2026",
-  "site_count": 109,
+  "site_count": 108,
   "notes": [],
   "totals": {
-    "sites_with_volume": 35,
+    "sites_with_volume": 34,
     "bcm_per_yr": {
-      "low": 0.0897,
-      "mid": 0.0975,
-      "high": 0.1258
+      "low": 0.0884,
+      "mid": 0.0961,
+      "high": 0.1239
     },
     "mmscfd": {
-      "low": 8.7,
-      "mid": 9.4,
-      "high": 12.2
+      "low": 8.6,
+      "mid": 9.3,
+      "high": 12.0
     },
     "co2e_t_per_yr": {
-      "low": 230484.0,
-      "mid": 250526.0,
-      "high": 323178.0
+      "low": 227176.0,
+      "mid": 246931.0,
+      "high": 318540.0
     },
     "co2e_t_per_yr_at_observed_dre": {
-      "low": 308971.0,
-      "mid": 335838.0,
-      "high": 433232.0
+      "low": 304537.0,
+      "mid": 331019.0,
+      "high": 427014.0
     },
     "power_mw": {
-      "low": 41.0,
-      "mid": 44.5,
-      "high": 57.4
+      "low": 40.4,
+      "mid": 43.9,
+      "high": 56.6
     },
     "value_usd_per_yr": {
-      "low": 58274756.0,
-      "mid": 63342126.0,
-      "high": 81711343.0
+      "low": 57438467.0,
+      "mid": 62433116.0,
+      "high": 80538719.0
     },
     "lng_cargoes_per_yr": {
-      "low": 0.93,
-      "mid": 1.01,
-      "high": 1.31
+      "low": 0.92,
+      "mid": 1.0,
+      "high": 1.29
     },
     "homes_powered": {
-      "low": 149471.0,
-      "mid": 162468.0,
-      "high": 209584.0
+      "low": 147326.0,
+      "mid": 160137.0,
+      "high": 206576.0
     },
     "methods": [
       "baseline"
@@ -150,10 +150,10 @@
     },
     {
       "name": "Punjab",
-      "sites": 44,
-      "known_flares": 6,
-      "mmscfd": 1.51,
-      "value_usd_per_yr": 10123628
+      "sites": 43,
+      "known_flares": 5,
+      "mmscfd": 1.37,
+      "value_usd_per_yr": 9214617
     },
     {
       "name": "Balochistan",
