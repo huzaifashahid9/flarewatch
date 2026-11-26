@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-25T11:16:23.711282+00:00",
+  "generated_at": "2026-11-26T10:53:05.809497+00:00",
   "sources": [
     "nasa-firms",
     "worldpop",
@@ -163,14 +163,14 @@
       "value_usd_per_yr": 2707185
     },
     {
-      "name": "Islamabad",
+      "name": "Gilgit-Baltistan",
       "sites": 1,
       "known_flares": 0,
       "mmscfd": 0.0,
       "value_usd_per_yr": 0
     },
     {
-      "name": "Gilgit-Baltistan",
+      "name": "Islamabad",
       "sites": 1,
       "known_flares": 0,
       "mmscfd": 0.0,
