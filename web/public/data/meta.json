@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-11-26T10:53:05.809497+00:00",
+  "generated_at": "2026-11-27T10:51:38.967251+00:00",
   "sources": [
     "nasa-firms",
     "worldpop",
@@ -11,7 +11,7 @@
     "VIIRS_NOAA21_NRT"
   ],
   "calibration": "john-zink-2026",
-  "site_count": 108,
+  "site_count": 107,
   "notes": [],
   "totals": {
     "sites_with_volume": 34,
@@ -136,7 +136,7 @@
   "provinces": [
     {
       "name": "Sindh",
-      "sites": 33,
+      "sites": 32,
       "known_flares": 18,
       "mmscfd": 4.49,
       "value_usd_per_yr": 30180855
